@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NN Nexus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cyan        : #00ffff;
+      --cyan-dim    : rgba(0, 255, 255, 0.12);
+      --cyan-border : rgba(0, 255, 255, 0.22);
+      --glass-bg    : rgba(6, 10, 16, 0.70);
+      --text-secondary : #a0b4c0;
+      --card-radius : 18px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      background: #020508;
+    }
+
+    /* ── CANVAS ── */
+    #net-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeRight {
+      from { opacity: 0; transform: translateX(-28px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeLeft {
+      from { opacity: 0; transform: translateX(28px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pulseDot {
+      0%, 100% { box-shadow: 0 0 4px var(--cyan); }
+      50%       { box-shadow: 0 0 12px var(--cyan); }
+    }
+
+    .au { animation: fadeUp    0.75s ease both; }
+    .ar { animation: fadeRight 0.75s ease both; }
+    .al { animation: fadeLeft  0.75s ease both; }
+
+    .d1 { animation-delay: 0.10s; }
+    .d2 { animation-delay: 0.20s; }
+    .d3 { animation-delay: 0.32s; }
+    .d4 { animation-delay: 0.44s; }
+    .d5 { animation-delay: 0.56s; }
+    .d6 { animation-delay: 0.68s; }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 60px;
+      height: 68px;
+      background: rgba(0, 0, 0, 0.52);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--cyan-border);
+      z-index: 999;
+    }
+
+    .navbar-logo {
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-decoration: none;
+    }
+
+    .navbar-logo span {
+      color: #fff;
+    }
+
+    .navbar-links {
+      display: flex;
+      gap: 36px;
+    }
+
+    .navbar-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+      position: relative;
+    }
+
+    .navbar-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--cyan);
+      transition: width 0.3s;
+    }
+
+    .navbar-links a:hover            { color: var(--cyan); }
+    .navbar-links a:hover::after     { width: 100%; }
+
+    /* ── PAGE ── */
+    .page {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 120px 60px 70px;
+      color: #fff;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .hero-title .brand {
+      color: var(--cyan);
+    }
+
+    .hero-subtitle {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.65;
+      margin-bottom: 38px;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-p {
+      padding: 14px 32px;
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #000;
+      background: var(--cyan);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+
+    .btn-p:hover {
+      background: #fff;
+      box-shadow: 0 0 28px rgba(0, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .btn-o {
+      padding: 14px 32px;
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--cyan);
+      background: transparent;
+      border: 1px solid var(--cyan-border);
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+
+    .btn-o:hover {
+      border-color: var(--cyan);
+      background: var(--cyan-dim);
+      transform: translateY(-2px);
+    }
+
+    /* ── STATS ── */
+    .stats-row {
+      display: flex;
+      gap: 50px;
+      margin-top: 56px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-num {
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--cyan);
+    }
+
+    .stat-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan-border), transparent);
+      margin: 0 60px;
+    }
+
+    /* ── CARDS SECTION ── */
+    .cards-section {
+      padding: 80px 60px 60px;
+    }
+
+    .section-header {
+      margin-bottom: 50px;
+    }
+
+    .section-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: clamp(20px, 3vw, 32px);
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* ── GRID ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--cyan-border);
+      border-radius: var(--card-radius);
+      padding: 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.35s, box-shadow 0.35s, border-color 0.35s;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
+    }
+
+    .card:hover {
+      transform: translateY(-7px);
+      border-color: rgba(0, 255, 255, 0.45);
+      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.75), 0 0 35px rgba(0, 255, 255, 0.1);
+    }
+
+    .card-glow {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 255, 255, 0.07) 0%, transparent 70%);
+      top: -80px;
+      right: -80px;
+      pointer-events: none;
+    }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--cyan-border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--cyan-dim);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .card-tag {
+      display: inline-block;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      background: var(--cyan-dim);
+      border: 1px solid var(--cyan-border);
+      border-radius: 4px;
+      padding: 3px 10px;
+      width: fit-content;
+    }
+
+    .card h2 {
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .card p {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .card-footer {
+      margin-top: 6px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .card-link {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: gap 0.3s;
+    }
+
+    .card-link:hover {
+      gap: 12px;
+    }
+
+    /* ── WIDE CARD ── */
+    .card-wide {
+      grid-column: span 2;
+      border-left: 3px solid var(--cyan);
+    }
+
+    /* ── SERVICES LIST ── */
+    .svc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 4px;
+    }
+
+    .svc-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 14px;
+      background: rgba(0, 255, 255, 0.04);
+      border: 1px solid rgba(0, 255, 255, 0.1);
+      border-radius: 8px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .svc-item:hover {
+      background: rgba(0, 255, 255, 0.09);
+      border-color: rgba(0, 255, 255, 0.28);
+    }
+
+    .svc-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      flex-shrink: 0;
+      animation: pulseDot 2.2s ease-in-out infinite;
+    }
+
+    .svc-item:nth-child(2) .svc-dot { animation-delay: 0.4s; }
+    .svc-item:nth-child(3) .svc-dot { animation-delay: 0.8s; }
+    .svc-item:nth-child(4) .svc-dot { animation-delay: 1.2s; }
+    .svc-item:nth-child(5) .svc-dot { animation-delay: 1.6s; }
+
+    .svc-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #d0e8ec;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── CONT-TXT (ul list) ── */
+    .cont-txt {
+      color: #fff;
+    }
+
+    .cont-txt ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .cont-txt ul li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 14px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #d0e8ec;
+      letter-spacing: 0.5px;
+      background: rgba(0, 255, 255, 0.04);
+      border: 1px solid rgba(0, 255, 255, 0.1);
+      border-radius: 8px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .cont-txt ul li:hover {
+      background: rgba(0, 255, 255, 0.09);
+      border-color: rgba(0, 255, 255, 0.28);
+    }
+
+    .cont-txt ul li::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      flex-shrink: 0;
+      box-shadow: 0 0 6px var(--cyan);
+      animation: pulseDot 2.2s ease-in-out infinite;
+    }
+
+    .cont-txt ul li:nth-child(2)::before { animation-delay: 0.4s; }
+    .cont-txt ul li:nth-child(3)::before { animation-delay: 0.8s; }
+    .cont-txt ul li:nth-child(4)::before { animation-delay: 1.2s; }
+    .cont-txt ul li:nth-child(5)::before { animation-delay: 1.6s; }
+    .cont-txt ul li:nth-child(6)::before { animation-delay: 2.0s; }
+
+    /* ── FOOTER ── */
+    .site-footer {
+      padding: 32px 60px;
+      border-top: 1px solid var(--cyan-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .footer-brand {
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--cyan);
+      letter-spacing: 2px;
+    }
+
+    .footer-copy {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar       { width: 5px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 255, 255, 0.3); border-radius: 3px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .card-grid                             { grid-template-columns: repeat(2, 1fr); }
+      .card-wide                             { grid-column: span 2; }
+      .navbar, .hero, .cards-section         { padding-left: 28px; padding-right: 28px; }
+      .divider                               { margin: 0 28px; }
+      .site-footer                           { padding: 28px; }
+    }
+
+    @media (max-width: 620px) {
+      .card-grid    { grid-template-columns: 1fr; }
+      .card-wide    { grid-column: span 1; }
+      .navbar       { padding: 0 18px; }
+      .navbar-links { gap: 18px; }
+      .hero         { padding: 100px 18px 50px; }
+      .cards-section { padding: 60px 18px; }
+      .stats-row    { gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="net-canvas"></canvas>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="#" class="navbar-logo">NN<span> Nexus</span></a>
+    <div class="navbar-links">
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <!-- HERO -->
+    <section class="hero">
+      <h1 class="hero-title au d2">Welcome To<br><span class="brand">NN Nexus</span></h1>
+      <p class="hero-subtitle au d3">
+        Bridging the gap between education and industry — real-world training,
+        digital services, and career guidance for the modern era.
+      </p>
+      <div class="cta-group au d4">
+        <a href="home.html" class="btn-p">Login / Signup</a>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- CARDS -->
+    <section class="cards-section">
+      <div class="section-header au d1">
+        <h2 class="section-title">Built For Growth. Designed For Impact.</h2>
+      </div>
+
+      <div class="card-grid">
+
+        <!-- About — wide -->
+        <div class="card card-wide ar d2">
+          <div class="card-glow"></div>
+          <span class="card-tag">About Us</span>
+          <h2>Who Is NN Nexus?</h2>
+          <p>
+            NN Nexus is a technology and creative solutions company focused on closing the gap
+            between education and industry. We deliver real-world training, premium digital services,
+            and career guidance that helps students and businesses thrive in today's fast-moving
+            digital landscape. Our mission: make technology simple, practical, and accessible for everyone.
+          </p>
+        </div>
+
+        <!-- Services -->
+        <div class="card al d3">
+          <div class="card-glow"></div>
+          <span class="card-tag">Services</span>
+          <h2>What We Offer</h2>
+          <div class="svc-list">
+            <div class="svc-item"><span class="svc-dot"></span><span class="svc-name">Website Development</span></div>
+            <div class="svc-item"><span class="svc-dot"></span><span class="svc-name">Graphic Design</span></div>
+            <div class="svc-item"><span class="svc-dot"></span><span class="svc-name">Digital Marketing</span></div>
+            <div class="svc-item"><span class="svc-dot"></span><span class="svc-name">Workshops &amp; Bootcamps</span></div>
+            <div class="svc-item"><span class="svc-dot"></span><span class="svc-name">Certification Programs</span></div>
+          </div>
+        </div>
+
+        <!-- Why Choose -->
+        <div class="card au d3">
+          <div class="card-glow"></div>
+          <div class="card-icon">🎓</div>
+          <span class="card-tag">Training</span>
+          <h2>Why Choose NN Nexus</h2>
+          <div class="cont-txt">
+            <ul>
+              <li>Practical industry-based training</li>
+              <li>Hands-on learning approach</li>
+              <li>Certificates provided</li>
+              <li>Affordable student pricing</li>
+              <li>Startup &amp; business support</li>
+              <li>Friendly mentorship guidance</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Complete Guidance -->
+        <div class="card au d4">
+          <div class="card-glow"></div>
+          <div class="card-icon">💻</div>
+          <span class="card-tag">Digital</span>
+          <h2>Complete Guidance</h2>
+          <p>
+            Expert support at every step. From ideation to execution, we provide complete guidance
+            to help you navigate every stage of your project — whether it's strategy, planning, or
+            implementation — with actionable insights and expert advice.
+          </p>
+        </div>
+
+        <!-- Contact -->
+        <div class="card al d5">
+          <div class="card-glow"></div>
+          <div class="card-icon">📡</div>
+          <span class="card-tag">Contact</span>
+          <h2>Let's Build Together</h2>
+          <p>
+            Whether you're a student looking to upskill or a business needing digital solutions,
+            we're ready to help you take the next step forward.
+          </p>
+        </div>
+      </div>
+    </section>
+    <footer class="site-footer">
+      <span class="footer-brand">NN Nexus</span>
+      <span class="footer-copy">© 2026 NN Nexus. All rights reserved.</span>
+    </footer>
+  </div>
+  <!-- NETWORK CANVAS -->
+  <script>
+    (function () {
+      var canvas = document.getElementById('net-canvas'),
+          ctx    = canvas.getContext('2d'),
+          W, H, pts,
+          NUM    = 75,
+          DIST   = 145,
+          mouse  = { x: -999, y: -999 };
+      function resize() {
+        W = canvas.width  = innerWidth;
+        H = canvas.height = innerHeight;
+      }
+      function init() {
+        pts = [];
+        for (var i = 0; i < NUM; i++) {
+          pts.push({
+            x  : Math.random() * W,
+            y  : Math.random() * H,
+            vx : (Math.random() - 0.5) * 0.4,
+            vy : (Math.random() - 0.5) * 0.4
+          });
+        }
+      }
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+        for (var i = 0; i < pts.length; i++) {
+          for (var j = i + 1; j < pts.length; j++) {
+            var dx = pts[i].x - pts[j].x,
+                dy = pts[i].y - pts[j].y,
+                d  = Math.hypot(dx, dy);
+            if (d < DIST) {
+              ctx.beginPath();
+              ctx.moveTo(pts[i].x, pts[i].y);
+              ctx.lineTo(pts[j].x, pts[j].y);
+              ctx.strokeStyle = 'rgba(0,255,255,' + (1 - d / DIST) * 0.28 + ')';
+              ctx.lineWidth   = 0.6;
+              ctx.stroke();
+            }
+          }
+          var md = Math.hypot(pts[i].x - mouse.x, pts[i].y - mouse.y);
+          if (md < 190) {
+            ctx.beginPath();
+            ctx.moveTo(pts[i].x, pts[i].y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = 'rgba(0,255,255,' + (1 - md / 190) * 0.5 + ')';
+            ctx.lineWidth   = 0.9;
+            ctx.stroke();
+          }
+          ctx.beginPath();
+          ctx.arc(pts[i].x, pts[i].y, 1.4, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0,255,255,0.7)';
+          ctx.fill();
+          pts[i].x += pts[i].vx;
+          pts[i].y += pts[i].vy;
+          if (pts[i].x < 0 || pts[i].x > W) pts[i].vx *= -1;
+          if (pts[i].y < 0 || pts[i].y > H) pts[i].vy *= -1;
+        }
+        requestAnimationFrame(frame);
+      }
+      addEventListener('resize',     function ()  { resize(); init(); });
+      addEventListener('mousemove',  function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+      addEventListener('mouseleave', function ()  { mouse.x = mouse.y = -999; });
+      resize();
+      init();
+      frame();
+    })();
+  </script>
+
+</body>
+</html>

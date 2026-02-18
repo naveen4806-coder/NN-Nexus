@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Development — NN Nexus</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #060810;
+    --surface: #0d1120;
+    --border: rgba(255,255,255,0.07);
+    --accent: #00e5ff;
+    --accent2: #7b5cf0;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --white: #ffffff;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 5%;
+    background: rgba(6,8,16,0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.4rem;
+    color: var(--white); letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--accent); }
+  .nav-tag {
+    font-size: 0.75rem; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 8rem 5% 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 60% 40%, rgba(0,229,255,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 80% at 10% 80%, rgba(123,92,240,0.08) 0%, transparent 60%);
+  }
+
+  /* grid lines */
+  .hero-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 760px; }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.25);
+    padding: 0.4rem 1rem; border-radius: 999px;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5.2rem);
+    font-weight: 800; line-height: 1.05; letter-spacing: -0.03em;
+    color: var(--white);
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  .hero h1 .line2 {
+    display: block;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .hero-sub {
+    margin-top: 1.2rem;
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    font-weight: 600; color: var(--muted);
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-intro {
+    margin-top: 1.8rem;
+    font-size: 1.05rem; line-height: 1.75; color: #9ca3af;
+    max-width: 560px;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .hero-cta {
+    margin-top: 2.5rem;
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .btn-primary {
+    padding: 0.85rem 2rem; border-radius: 8px;
+    background: var(--accent); color: #060810;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+    text-decoration: none; letter-spacing: 0.02em;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(0,229,255,0.25);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,229,255,0.4); }
+  .btn-ghost {
+    padding: 0.85rem 2rem; border-radius: 8px;
+    border: 1px solid var(--border); color: var(--text);
+    font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
+    text-decoration: none; transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── SECTIONS ── */
+  section { padding: 6rem 5%; }
+
+  .section-label {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 0.8rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 800; letter-spacing: -0.025em;
+    color: var(--white); margin-bottom: 1rem;
+  }
+  .section-desc {
+    font-size: 1rem; color: var(--muted); max-width: 520px; line-height: 1.7;
+  }
+
+  /* ── SERVICES GRID ── */
+  .services { background: var(--surface); }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5px;
+    margin-top: 3.5rem;
+    border: 1.5px solid var(--border); border-radius: 16px;
+    overflow: hidden;
+  }
+  .service-card {
+    background: var(--bg);
+    padding: 2rem 1.8rem;
+    position: relative; overflow: hidden;
+    transition: background 0.3s;
+    cursor: default;
+  }
+  .service-card:hover { background: #0f1526; }
+  .service-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .service-card:hover::before { transform: scaleX(1); }
+  .service-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+    color: var(--accent2); margin-bottom: 1rem;
+  }
+  .service-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+  .service-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem; font-weight: 700; color: var(--white);
+  }
+
+  /* ── PROCESS ── */
+  .process-track {
+    margin-top: 3.5rem;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .process-step {
+    display: grid; grid-template-columns: 56px 1fr;
+    gap: 1.5rem; position: relative;
+    padding-bottom: 2.5rem;
+  }
+  .process-step:last-child { padding-bottom: 0; }
+  .process-step:not(:last-child) .step-line {
+    position: absolute; left: 27px; top: 56px; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, rgba(0,229,255,0.3), transparent);
+  }
+  .step-num {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,229,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1rem; color: var(--accent);
+    background: rgba(0,229,255,0.05);
+    flex-shrink: 0;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .process-step:hover .step-num {
+    background: rgba(0,229,255,0.12);
+    border-color: var(--accent);
+  }
+  .step-body { padding-top: 0.9rem; }
+  .step-body h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 1.05rem; color: var(--white);
+    margin-bottom: 0.3rem;
+  }
+  .step-body p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── TECH ── */
+  .tech { background: var(--surface); }
+  .tech-pills {
+    display: flex; flex-wrap: wrap; gap: 0.8rem;
+    margin-top: 2.8rem;
+  }
+  .pill {
+    padding: 0.6rem 1.4rem; border-radius: 999px;
+    border: 1px solid var(--border);
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.9rem; color: var(--text);
+    background: rgba(255,255,255,0.03);
+    transition: all 0.25s; cursor: default;
+  }
+  .pill:hover {
+    border-color: var(--accent); color: var(--accent);
+    background: rgba(0,229,255,0.06);
+    transform: translateY(-2px);
+  }
+
+  /* ── WHY US ── */
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.2rem;
+    margin-top: 3rem;
+  }
+  .why-card {
+    padding: 1.8rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .why-card:hover {
+    border-color: rgba(123,92,240,0.4);
+    transform: translateY(-4px);
+  }
+  .why-icon { font-size: 1.6rem; margin-bottom: 1rem; }
+  .why-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.95rem; color: var(--white);
+  }
+
+  /* ── CTA STRIP ── */
+  .cta-strip {
+    margin: 0 5% 6rem;
+    padding: 3.5rem 3rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(0,229,255,0.08) 0%, rgba(123,92,240,0.1) 100%);
+    border: 1px solid rgba(0,229,255,0.15);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 2rem;
+  }
+  .cta-strip h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-weight: 800; color: var(--white); letter-spacing: -0.02em;
+  }
+  .cta-strip p { color: var(--muted); margin-top: 0.4rem; font-size: 0.95rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 5%;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  footer p { font-size: 0.85rem; color: var(--muted); }
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.1rem; color: var(--white);
+  }
+  .footer-logo span { color: var(--accent); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .reveal {
+    opacity: 0; transform: translateY(32px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 640px) {
+    .cta-strip { text-align: center; justify-content: center; }
+    footer { justify-content: center; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">NN<span>.</span>Nexus</div>
+  <div class="nav-tag">Web Development</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Web Development Services</div>
+    <h1>
+      Professional Website<br>
+      <span class="line2">Development</span>
+    </h1>
+    <p class="hero-sub">We Build Websites That Build Your Business</p>
+    <p class="hero-intro">
+      NN Nexus creates fast, modern, and scalable websites for startups, students, and companies. We don't just design — we solve business problems.
+    </p>
+
+  </div>
+</section>
+
+<!-- WHAT WE PROVIDE -->
+<section class="services" id="services">
+  <div class="section-label">What We Provide</div>
+  <h2 class="section-title">Everything You Need Online</h2>
+  <p class="section-desc">From personal portfolios to full-scale web apps — we deliver solutions tailored to your goals.</p>
+
+  <div class="services-grid reveal">
+    <div class="service-card">
+      <div class="service-num">01</div>
+      <div class="service-icon">🏢</div>
+      <h3>Business Websites</h3>
+    </div>
+    <div class="service-card">
+      <div class="service-num">02</div>
+      <div class="service-icon">🎨</div>
+      <h3>Portfolio Websites</h3>
+    </div>
+    <div class="service-card">
+      <div class="service-num">03</div>
+      <div class="service-icon">🎓</div>
+      <h3>College Project Websites</h3>
+    </div>
+    <div class="service-card">
+      <div class="service-num">04</div>
+      <div class="service-icon">📊</div>
+      <h3>Admin Dashboards</h3>
+    </div>
+    <div class="service-card">
+      <div class="service-num">05</div>
+      <div class="service-icon">⚙️</div>
+      <h3>Web Applications</h3>
+    </div>
+    <div class="service-card">
+      <div class="service-num">06</div>
+      <div class="service-icon">🛒</div>
+      <h3>E-commerce Platforms</h3>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="section-label">How We Work</div>
+  <h2 class="section-title">Our Development Process</h2>
+  <p class="section-desc">A clear, transparent workflow from idea to launch — so you're never in the dark.</p>
+
+  <div class="process-track">
+    <div class="process-step reveal">
+      <div>
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <h3>Requirement Discussion</h3>
+        <p>We start by understanding your goals, audience, and expectations in a detailed discovery session.</p>
+      </div>
+    </div>
+    <div class="process-step reveal">
+      <div>
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <h3>Wireframe &amp; Design</h3>
+        <p>We sketch the structure and craft a polished visual design for your review and approval.</p>
+      </div>
+    </div>
+    <div class="process-step reveal">
+      <div>
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <h3>Development</h3>
+        <p>Clean, maintainable code using modern tech — built for speed, scalability, and long-term growth.</p>
+      </div>
+    </div>
+    <div class="process-step reveal">
+      <div>
+        <div class="step-num">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <h3>Testing</h3>
+        <p>Cross-device, cross-browser testing to ensure everything works perfectly before going live.</p>
+      </div>
+    </div>
+    <div class="process-step reveal">
+      <div>
+        <div class="step-num">5</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <h3>Deployment</h3>
+        <p>We launch your site to a fast, reliable hosting environment with zero downtime.</p>
+      </div>
+    </div>
+    <div class="process-step reveal">
+      <div>
+        <div class="step-num">6</div>
+      </div>
+      <div class="step-body">
+        <h3>Maintenance</h3>
+        <p>Ongoing support and updates to keep your website secure, fast, and relevant.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECHNOLOGIES -->
+<section class="tech">
+  <div class="section-label">Technologies We Use</div>
+  <h2 class="section-title">Built With the Best Stack</h2>
+  <p class="section-desc">We leverage industry-standard tools to ensure performance, security, and scalability.</p>
+  <div class="tech-pills reveal">
+    <div class="pill">HTML</div>
+    <div class="pill">CSS</div>
+    <div class="pill">JavaScript</div>
+    <div class="pill">React</div>
+    <div class="pill">Node.js</div>
+    <div class="pill">Databases</div>
+    <div class="pill">REST APIs</div>
+  </div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section>
+  <div class="section-label">Why Choose Us?</div>
+  <h2 class="section-title">The NN Nexus Advantage</h2>
+  <p class="section-desc">We're not just developers — we're committed partners in your digital success.</p>
+  <div class="why-grid">
+    <div class="why-card reveal">
+      <div class="why-icon">💰</div>
+      <h3>Affordable Pricing</h3>
+    </div>
+    <div class="why-card reveal">
+      <div class="why-icon">⚡</div>
+      <h3>Fast Delivery</h3>
+    </div>
+    <div class="why-card reveal">
+      <div class="why-icon">🔍</div>
+      <h3>SEO Friendly</h3>
+    </div>
+    <div class="why-card reveal">
+      <div class="why-icon">📱</div>
+      <h3>Mobile Responsive</h3>
+    </div>
+    <div class="why-card reveal">
+      <div class="why-icon">🛡️</div>
+      <h3>Free Support Period</h3>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">NN<span>.</span>Nexus</div>
+  <p>© 2025 NN Nexus. All rights reserved.</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NN Nexus — Workshops</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════
+   ROOT & RESET
+══════════════════════════════ */
+:root {
+  --cyan      : #00ffff;
+  --cyan-dim  : rgba(0,255,255,0.10);
+  --cyan-glow : rgba(0,255,255,0.22);
+  --glass     : rgba(6,10,18,0.72);
+  --glass2    : rgba(8,14,22,0.88);
+  --muted     : #a0b4c0;
+  --radius    : 18px;
+  --gold      : #ffd700;
+  --gold-dim  : rgba(255,215,0,0.12);
+  --gold-glow : rgba(255,215,0,0.28);
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  min-height:100vh;
+  background:#020508;
+  color:#fff;
+  font-family:'Rajdhani',sans-serif;
+  overflow-x:hidden;
+}
+
+/* ══════════════════════════════
+   CANVAS
+══════════════════════════════ */
+#net-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+/* ══════════════════════════════
+   ANIMATIONS
+══════════════════════════════ */
+@keyframes fadeUp    { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeLeft  { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
+@keyframes fadeRight { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+@keyframes pulseDot  { 0%,100%{box-shadow:0 0 5px var(--cyan)} 50%{box-shadow:0 0 16px var(--cyan)} }
+@keyframes pulseGold { 0%,100%{box-shadow:0 0 5px var(--gold)} 50%{box-shadow:0 0 16px var(--gold)} }
+@keyframes float     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes shimmer   { 0%{background-position:-200% center} 100%{background-position:200% center} }
+@keyframes gradMove  { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+@keyframes scanLine  { 0%{top:-40px} 100%{top:110%} }
+@keyframes stampIn   { 0%{transform:scale(2) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(3deg)} 100%{transform:scale(1) rotate(-5deg);opacity:1} }
+
+.au { animation:fadeUp    0.7s ease both; }
+.al { animation:fadeLeft  0.7s ease both; }
+.ar { animation:fadeRight 0.7s ease both; }
+.d1 { animation-delay:0.08s; }
+.d2 { animation-delay:0.18s; }
+.d3 { animation-delay:0.30s; }
+.d4 { animation-delay:0.42s; }
+.d5 { animation-delay:0.55s; }
+.d6 { animation-delay:0.68s; }
+
+/* ══════════════════════════════
+   NAVBAR
+══════════════════════════════ */
+.navbar {
+  position:fixed; top:0; width:100%; height:68px;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0 60px;
+  background:rgba(2,5,8,0.72);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--cyan-glow);
+  z-index:999;
+}
+.nav-logo {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:20px; font-weight:900;
+  color:var(--cyan); letter-spacing:2px; text-decoration:none;
+}
+.nav-logo em { color:#fff; font-style:normal; }
+.nav-links   { display:flex; gap:36px; }
+.nav-links a {
+  color:var(--muted); text-decoration:none;
+  font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  transition:color 0.3s; position:relative;
+}
+.nav-links a::after {
+  content:''; position:absolute; bottom:-4px; left:0;
+  width:0; height:1px; background:var(--cyan); transition:width 0.3s;
+}
+.nav-links a:hover            { color:var(--cyan); }
+.nav-links a:hover::after     { width:100%; }
+.nav-links a.active           { color:var(--cyan); }
+.nav-links a.active::after    { width:100%; }
+.nav-cta {
+  padding:8px 22px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:1px;
+  color:#000; background:var(--cyan);
+  border:none; border-radius:8px; cursor:pointer;
+  text-decoration:none; transition:all 0.3s;
+}
+.nav-cta:hover { background:#fff; box-shadow:0 0 20px rgba(0,255,255,0.4); }
+
+/* ══════════════════════════════
+   PAGE
+══════════════════════════════ */
+.page { position:relative; z-index:1; padding-top:68px; }
+
+/* ══════════════════════════════
+   HERO
+══════════════════════════════ */
+.hero {
+  padding:80px 60px 70px;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center; position:relative; overflow:hidden;
+}
+.hero-bg-text {
+  position:absolute;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(80px,15vw,200px); font-weight:900;
+  color:rgba(0,255,255,0.025);
+  user-select:none; pointer-events:none;
+  top:50%; left:50%; transform:translate(-50%,-50%);
+  white-space:nowrap; letter-spacing:10px;
+}
+.hero-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  border-radius:40px; padding:6px 18px;
+  font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:22px;
+}
+.badge-dot {
+  width:6px; height:6px; border-radius:50%; background:var(--cyan);
+  animation:pulseDot 1.8s ease-in-out infinite;
+}
+.hero h1 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(30px,5.5vw,62px); font-weight:900;
+  line-height:1.1; margin-bottom:18px;
+}
+.hero h1 .accent {
+  background:linear-gradient(90deg,#00ffff,#ffffff,#00ffff);
+  background-size:200% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 3s linear infinite;
+}
+.hero p {
+  font-size:17px; color:var(--muted);
+  max-width:560px; line-height:1.7; margin-bottom:40px;
+}
+
+/* Quick stats strip */
+.hero-stats {
+  display:flex; gap:0;
+  background:var(--glass2);
+  border:1px solid var(--cyan-glow); border-radius:14px;
+  overflow:hidden;
+}
+.hs-item {
+  padding:18px 36px; text-align:center;
+  border-right:1px solid var(--cyan-glow);
+  transition:background 0.3s;
+}
+.hs-item:last-child { border-right:none; }
+.hs-item:hover { background:rgba(0,255,255,0.05); }
+.hs-num {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:26px; font-weight:900; color:var(--cyan); display:block;
+}
+.hs-lbl {
+  font-size:11px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--muted);
+}
+
+/* ══════════════════════════════
+   DIVIDER
+══════════════════════════════ */
+.divider {
+  height:1px; margin:0 60px;
+  background:linear-gradient(90deg,transparent,var(--cyan-glow),transparent);
+}
+
+/* ══════════════════════════════
+   SECTION LABELS
+══════════════════════════════ */
+.sec-label {
+  font-size:10px; font-weight:700; letter-spacing:4px;
+  text-transform:uppercase; color:var(--cyan); margin-bottom:10px;
+}
+.sec-title {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(22px,3vw,34px); font-weight:700; color:#fff; margin-bottom:12px;
+}
+.sec-sub {
+  font-size:16px; color:var(--muted);
+  max-width:560px; line-height:1.65; margin-bottom:50px;
+}
+
+/* ══════════════════════════════
+   WORKSHOPS SECTION
+══════════════════════════════ */
+.workshops-section { padding:80px 60px; }
+
+/* Individual workshop cards — alternating layout */
+.workshop-block {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px; align-items:center;
+  margin-bottom:70px;
+  position:relative;
+}
+/* FIX: Use flexbox row-reverse instead of direction:rtl (rtl breaks text alignment on children) */
+.workshop-block.flip {
+  display:flex;
+  flex-direction:row-reverse;
+}
+
+/* Card visual side */
+.ws-visual {
+  position:relative; border-radius:var(--radius); overflow:hidden;
+  min-height:320px;
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--cyan-glow);
+  transition:border-color 0.35s, box-shadow 0.35s;
+  flex:1; /* needed when .flip uses flexbox */
+}
+.ws-visual:hover {
+  border-color:rgba(0,255,255,0.5);
+  box-shadow:0 20px 60px rgba(0,0,0,0.8), 0 0 50px rgba(0,255,255,0.1);
+}
+.ws-visual-bg {
+  position:absolute; inset:0;
+  background-size:400% 400%;
+  animation:gradMove 8s ease infinite;
+  opacity:0.85;
+}
+.ws-visual-grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,255,0.06) 1px, transparent 1px);
+  background-size:30px 30px;
+}
+.ws-visual-scan {
+  position:absolute; left:0; right:0; height:60px;
+  background:linear-gradient(to bottom,transparent,rgba(0,255,255,0.03),transparent);
+  animation:scanLine 4s linear infinite;
+  pointer-events:none;
+}
+.ws-emoji {
+  position:relative; z-index:1;
+  font-size:72px;
+  animation:float 3.5s ease-in-out infinite;
+  filter:drop-shadow(0 0 20px rgba(0,255,255,0.35));
+}
+.ws-badge-corner {
+  position:absolute; top:18px; right:18px;
+  background:var(--cyan); color:#000;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:9px; font-weight:900; letter-spacing:1px;
+  padding:5px 12px; border-radius:20px;
+  z-index:2; text-transform:uppercase;
+}
+.ws-seats {
+  position:absolute; bottom:18px; left:18px;
+  background:rgba(0,0,0,0.65); border:1px solid var(--cyan-glow);
+  border-radius:8px; padding:7px 14px;
+  font-size:12px; font-weight:700; color:var(--cyan);
+  z-index:2; display:flex; align-items:center; gap:6px;
+}
+.ws-seats-dot { width:5px; height:5px; border-radius:50%; background:#00ffaa; animation:pulseDot 1.5s infinite; }
+
+/* Card info side */
+.ws-info {
+  display:flex; flex-direction:column; gap:18px;
+  flex:1; /* needed when .flip uses flexbox */
+}
+
+.ws-tag {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  border-radius:6px; padding:5px 14px;
+  font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:var(--cyan); width:fit-content;
+}
+.ws-tag-dot { width:5px; height:5px; border-radius:50%; background:var(--cyan); animation:pulseDot 2s infinite; }
+
+.ws-info h2 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(20px,2.5vw,30px); font-weight:900; color:#fff; line-height:1.2;
+}
+.ws-info h2 span { color:var(--cyan); }
+
+.ws-desc {
+  font-size:15px; color:var(--muted); line-height:1.7;
+}
+
+/* Feature bullets */
+.ws-features { display:flex; flex-direction:column; gap:10px; }
+.ws-feat {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:11px 16px;
+  background:var(--glass2); border:1px solid rgba(0,255,255,0.1);
+  border-radius:10px;
+  transition:border-color 0.3s, background 0.3s;
+}
+.ws-feat:hover {
+  border-color:var(--cyan-glow);
+  background:rgba(0,255,255,0.05);
+}
+.ws-feat-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+.ws-feat-text { font-size:14px; color:#d0e8ec; font-weight:600; line-height:1.5; }
+.ws-feat-text em { color:var(--cyan); font-style:normal; font-weight:700; }
+
+/* Meta info row */
+.ws-meta {
+  display:flex; gap:14px; flex-wrap:wrap;
+}
+.ws-meta-chip {
+  display:flex; align-items:center; gap:7px;
+  padding:7px 14px;
+  background:var(--glass); border:1px solid rgba(0,255,255,0.12);
+  border-radius:8px;
+  font-size:13px; font-weight:600; color:var(--muted);
+}
+.ws-meta-chip span:first-child { font-size:15px; }
+
+/* Enroll button */
+.btn-enroll {
+  display:inline-flex; align-items:center; gap:10px;
+  padding:14px 28px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:1.5px;
+  color:#000; background:var(--cyan);
+  border:none; border-radius:10px; cursor:pointer;
+  text-decoration:none; transition:all 0.3s;
+  width:fit-content;
+}
+.btn-enroll:hover {
+  background:#fff;
+  box-shadow:0 0 30px rgba(0,255,255,0.45);
+  transform:translateY(-2px);
+}
+.btn-enroll-ghost {
+  display:inline-flex; align-items:center; gap:10px;
+  padding:14px 28px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:1.5px;
+  color:var(--cyan); background:transparent;
+  border:1px solid var(--cyan-glow); border-radius:10px; cursor:pointer;
+  text-decoration:none; transition:all 0.3s;
+  width:fit-content;
+}
+.btn-enroll-ghost:hover {
+  border-color:var(--cyan); background:var(--cyan-dim);
+  transform:translateY(-2px);
+}
+
+/* ══════════════════════════════
+   CERTIFICATION SECTION
+══════════════════════════════ */
+.cert-section {
+  padding:0 60px 90px;
+}
+
+.cert-wrapper {
+  background:linear-gradient(135deg, rgba(0,255,255,0.06) 0%, rgba(0,30,50,0.5) 50%, rgba(255,215,0,0.04) 100%);
+  border:1px solid var(--cyan-glow);
+  border-radius:24px;
+  padding:70px 60px;
+  position:relative; overflow:hidden;
+}
+.cert-wrapper::before {
+  content:''; position:absolute; top:0; left:5%; right:5%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,0.6),transparent);
+}
+.cert-wrapper::after {
+  content:'CERTIFIED';
+  position:absolute; right:-30px; bottom:30px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:100px; font-weight:900; letter-spacing:10px;
+  color:rgba(255,215,0,0.03); pointer-events:none; user-select:none;
+}
+
+.cert-grid {
+  display:grid; grid-template-columns:1fr 1.1fr; gap:60px; align-items:center;
+}
+
+/* Left — copy */
+.cert-tag {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--gold-dim); border:1px solid var(--gold-glow);
+  border-radius:6px; padding:5px 14px;
+  font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:var(--gold); margin-bottom:20px;
+}
+.cert-tag-dot { width:5px; height:5px; border-radius:50%; background:var(--gold); animation:pulseGold 1.8s infinite; }
+
+.cert-left h2 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(22px,3vw,36px); font-weight:900;
+  color:#fff; line-height:1.15; margin-bottom:16px;
+}
+.cert-left h2 span { color:var(--gold); }
+.cert-left p {
+  font-size:15px; color:var(--muted); line-height:1.7; margin-bottom:32px; max-width:440px;
+}
+
+/* Catchy cert points */
+.cert-points { display:flex; flex-direction:column; gap:12px; }
+.cert-point {
+  display:flex; align-items:flex-start; gap:14px;
+  padding:14px 18px;
+  background:rgba(255,215,0,0.04); border:1px solid rgba(255,215,0,0.15);
+  border-radius:12px;
+  transition:background 0.3s, border-color 0.3s, transform 0.3s;
+}
+.cert-point:hover {
+  background:rgba(255,215,0,0.08); border-color:rgba(255,215,0,0.35);
+  transform:translateX(5px);
+}
+.cert-point-icon { font-size:20px; flex-shrink:0; margin-top:1px; }
+.cert-point-title {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:13px; font-weight:700; color:var(--gold); margin-bottom:4px;
+}
+.cert-point-text { font-size:13px; color:var(--muted); line-height:1.55; }
+
+.cert-btns { display:flex; gap:14px; flex-wrap:wrap; margin-top:32px; }
+
+.btn-cert {
+  padding:14px 28px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:1.5px;
+  color:#000; background:var(--gold);
+  border:none; border-radius:10px; cursor:pointer;
+  text-decoration:none; transition:all 0.3s;
+  display:inline-block;
+}
+.btn-cert:hover {
+  background:#fff; box-shadow:0 0 28px rgba(255,215,0,0.5);
+  transform:translateY(-2px);
+}
+.btn-cert-ghost {
+  padding:14px 28px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:1.5px;
+  color:var(--gold); background:transparent;
+  border:1px solid var(--gold-glow); border-radius:10px; cursor:pointer;
+  text-decoration:none; transition:all 0.3s;
+  display:inline-block;
+}
+.btn-cert-ghost:hover {
+  border-color:var(--gold); background:var(--gold-dim);
+  transform:translateY(-2px);
+}
+
+/* Right — certificate mockup */
+.cert-right { display:flex; justify-content:center; align-items:center; }
+
+.cert-mockup {
+  width:100%; max-width:400px;
+  background:linear-gradient(145deg,#0a0f1e,#050a14);
+  border:2px solid var(--gold-glow); border-radius:16px;
+  padding:36px 32px;
+  position:relative; overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,0.8), 0 0 50px rgba(255,215,0,0.08);
+  animation:fadeUp 0.8s 0.3s ease both;
+}
+.cert-mockup::before {
+  content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-glow),transparent);
+}
+.cert-mockup::after {
+  content:''; position:absolute; inset:8px;
+  border:1px solid rgba(255,215,0,0.08); border-radius:10px;
+  pointer-events:none;
+}
+
+.cert-top {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:24px;
+}
+.cert-org {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:14px; font-weight:900; color:var(--gold); letter-spacing:2px;
+}
+.cert-org em { color:#fff; font-style:normal; }
+.cert-ribbon {
+  width:36px; height:36px; border-radius:50%;
+  background:radial-gradient(circle,var(--gold),#c8a200);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+  box-shadow:0 0 14px rgba(255,215,0,0.5);
+  animation:pulseGold 2s infinite;
+}
+
+.cert-divider-line {
+  height:1px; background:linear-gradient(90deg,transparent,var(--gold-glow),transparent);
+  margin-bottom:22px;
+}
+
+.cert-presents {
+  font-size:11px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--muted); margin-bottom:8px;
+}
+.cert-heading {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--gold); margin-bottom:6px;
+}
+.cert-name-line {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:22px; font-weight:900; color:#fff; margin-bottom:18px;
+  border-bottom:1px solid rgba(255,215,0,0.2); padding-bottom:14px;
+}
+
+.cert-for {
+  font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:6px;
+}
+.cert-course {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:14px; font-weight:700; color:var(--cyan); margin-bottom:22px;
+}
+
+.cert-footer-row {
+  display:flex; justify-content:space-between; align-items:flex-end;
+}
+.cert-sig { text-align:center; }
+.cert-sig-line {
+  width:90px; height:1px; background:rgba(255,215,0,0.3); margin:0 auto 4px;
+}
+.cert-sig-label {
+  font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted);
+}
+.cert-stamp {
+  width:56px; height:56px; border-radius:50%;
+  border:2px solid var(--gold-glow);
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px;
+  box-shadow:0 0 12px rgba(255,215,0,0.3);
+  animation:stampIn 0.8s 0.8s ease both, pulseGold 3s 1.5s infinite;
+}
+.cert-id {
+  font-size:9px; letter-spacing:1px; color:rgba(160,180,192,0.4);
+  margin-top:18px; text-align:center;
+}
+
+/* ══════════════════════════════
+   CTA STRIP
+══════════════════════════════ */
+.cta-strip {
+  margin:0 60px 90px;
+  background:var(--glass2);
+  border:1px solid var(--cyan-glow); border-radius:var(--radius);
+  padding:50px 60px;
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:30px; position:relative; overflow:hidden;
+}
+.cta-strip::before {
+  content:''; position:absolute; top:0; left:5%; right:5%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,0.6),transparent);
+}
+.cta-strip::after {
+  content:''; position:absolute; right:-80px; top:-80px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,255,0.05) 0%,transparent 70%);
+  pointer-events:none;
+}
+.cta-copy h2 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(18px,2.5vw,26px); font-weight:900; color:#fff; margin-bottom:8px;
+}
+.cta-copy p { font-size:15px; color:var(--muted); max-width:460px; line-height:1.6; }
+.cta-actions { display:flex; gap:14px; flex-wrap:wrap; flex-shrink:0; }
+
+/* ══════════════════════════════
+   FOOTER
+══════════════════════════════ */
+.footer {
+  padding:36px 60px;
+  border-top:1px solid var(--cyan-glow);
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:14px;
+  background:rgba(0,0,0,0.5); backdrop-filter:blur(10px);
+}
+.footer-logo {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:18px; font-weight:900; color:var(--cyan); letter-spacing:2px;
+}
+.footer-logo em { color:#fff; font-style:normal; }
+.footer-links  { display:flex; gap:28px; }
+.footer-links a{ font-size:13px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+.footer-links a:hover { color:var(--cyan); }
+.footer-copy   { font-size:12px; color:var(--muted); }
+
+/* ══════════════════════════════
+   SCROLLBAR
+══════════════════════════════ */
+::-webkit-scrollbar       { width:5px; }
+::-webkit-scrollbar-track { background:#000; }
+::-webkit-scrollbar-thumb { background:rgba(0,255,255,0.3); border-radius:3px; }
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+@media(max-width:960px) {
+  .workshop-block,
+  .workshop-block.flip    { grid-template-columns:1fr; display:grid; flex-direction:unset; }
+  .ws-visual, .ws-info    { flex:unset; }
+  .cert-grid              { grid-template-columns:1fr; gap:40px; }
+  .cert-right             { order:-1; }
+  .cta-strip              { flex-direction:column; }
+  .navbar,.hero,.workshops-section,.cert-section,.footer {
+    padding-left:28px; padding-right:28px;
+  }
+  .cta-strip { margin:0 28px 60px; }
+  .divider   { margin:0 28px; }
+  .cert-wrapper { padding:40px 28px; }
+}
+@media(max-width:620px) {
+  .hero-stats        { flex-direction:column; }
+  .hs-item           { border-right:none; border-bottom:1px solid var(--cyan-glow); }
+  .hs-item:last-child{ border-bottom:none; }
+  .nav-links         { display:none; }
+  .ws-meta           { flex-direction:column; gap:8px; }
+  .cert-mockup       { padding:24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="net-canvas"></canvas>
+
+<div class="page">
+
+  <!-- ══ NAVBAR ══ -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">NN<em> Nexus</em></a>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+    </div>
+  </nav>
+
+  <!-- ══ HERO ══ -->
+  <div class="hero">
+    <div class="hero-bg-text">WORKSHOPS</div>
+    <div class="hero-badge au d1">
+      <span class="badge-dot"></span>
+      Live Enrollments Open — Batch 2026
+    </div>
+    <h1 class="au d2">Learn. Build. <span class="accent">Get Certified.</span></h1>
+    <p class="au d3">
+      Hands-on workshops designed by industry professionals to take you from zero to job-ready.
+      Real projects. Real skills. Real certificates.
+    </p>
+    <div class="hero-stats au d4">
+      <div class="hs-item">
+        <span class="hs-num">4</span>
+        <span class="hs-lbl">Workshops</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-num">100%</span>
+        <span class="hs-lbl">Certified</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-num">Live</span>
+        <span class="hs-lbl">Sessions</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ══ WORKSHOPS ══ -->
+  <section class="workshops-section" id="workshops">
+    <p class="sec-label au d1">// Our Programs</p>
+    <h2 class="sec-title au d2">Workshops We Conduct</h2>
+    <p class="sec-sub au d3">Each workshop is project-driven, mentor-led, and ends with a certificate you can proudly put on your resume.</p>
+
+    <!-- ─── 01: UI/UX DESIGNING ─── -->
+    <div class="workshop-block au d2">
+      <div class="ws-visual">
+        <div class="ws-visual-bg" style="background:linear-gradient(135deg,#0a0f1e 0%,#001a2e 40%,#002040 100%);"></div>
+        <div class="ws-visual-grid"></div>
+        <div class="ws-visual-scan"></div>
+        <span class="ws-emoji">🎨</span>
+        
+      </div>
+
+      <div class="ws-info">
+        <div class="ws-tag"><span class="ws-tag-dot"></span>Workshop 01</div>
+        <h2>UI/UX <span>Designing</span></h2>
+        <p class="ws-desc">
+          Master the art of crafting beautiful, intuitive digital experiences. Learn the full design process — from user research and wireframing to high-fidelity prototypes in Figma.
+        </p>
+        <div class="ws-features">
+          <div class="ws-feat"><span class="ws-feat-icon">🖌️</span><div class="ws-feat-text">Design in <em>Figma</em> — industry's #1 tool used by top companies worldwide</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">🔬</span><div class="ws-feat-text"><em>User Research &amp; Personas</em> — understand users before you design for them</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">📐</span><div class="ws-feat-text"><em>Wireframing to Prototype</em> — build clickable prototypes from scratch</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">🎯</span><div class="ws-feat-text"><em>Design Systems &amp; Components</em> — build reusable, scalable design libraries</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">🏆</span><div class="ws-feat-text">Capstone project reviewed by <em>real designers</em> — added to your portfolio</div></div>
+        </div>
+        <div class="ws-meta">
+          <div class="ws-meta-chip"><span>🎯</span><span>Beginner Friendly</span></div>
+          <div class="ws-meta-chip"><span>💻</span><span>Online &amp; Offline</span></div>
+          <div class="ws-meta-chip"><span>🏅</span><span>Certificate Included</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 02: POSTER MAKING ─── -->
+    <div class="workshop-block flip au d2">
+      <div class="ws-visual">
+        <div class="ws-visual-bg" style="background:linear-gradient(135deg,#0f0a1e 0%,#1a001a 40%,#200020 100%);"></div>
+        <div class="ws-visual-grid"></div>
+        <div class="ws-visual-scan"></div>
+        <span class="ws-emoji">🖼️</span>
+       
+      </div>
+
+      <div class="ws-info">
+        <div class="ws-tag"><span class="ws-tag-dot"></span>Workshop 02</div>
+        <h2>Poster <span>Making</span></h2>
+        <p class="ws-desc">
+          Turn ideas into visual stories. Learn professional graphic design using Adobe Photoshop &amp; Illustrator to create eye-catching posters, banners, and social media content.
+        </p>
+        <div class="ws-features">
+          <div class="ws-feat"><span class="ws-feat-icon">🖥️</span><div class="ws-feat-text">Work in <em>Photoshop &amp; Illustrator</em> — tools used by every design agency</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">🎨</span><div class="ws-feat-text"><em>Colour Theory &amp; Typography</em> — the two pillars of stunning visual design</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">📱</span><div class="ws-feat-text"><em>Social Media &amp; Print Formats</em> — design for Instagram, events, and more</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">✂️</span><div class="ws-feat-text"><em>Background Removal, Masking, Effects</em> — professional retouching skills</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">📁</span><div class="ws-feat-text">Leave with a <em>portfolio-ready collection</em> of 10+ original designs</div></div>
+        </div>
+        <div class="ws-meta">
+          <div class="ws-meta-chip"><span>🎯</span><span>All Levels</span></div>
+          <div class="ws-meta-chip"><span>💻</span><span>Online &amp; Offline</span></div>
+          <div class="ws-meta-chip"><span>🏅</span><span>Certificate Included</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 03: FRONTEND DEVELOPMENT ─── -->
+    <div class="workshop-block au d2">
+      <div class="ws-visual">
+        <div class="ws-visual-bg" style="background:linear-gradient(135deg,#0a1a0a 0%,#001500 40%,#002a00 100%);"></div>
+        <div class="ws-visual-grid"></div>
+        <div class="ws-visual-scan"></div>
+        <span class="ws-emoji">💻</span>
+        
+      </div>
+
+      <div class="ws-info">
+        <div class="ws-tag"><span class="ws-tag-dot"></span>Workshop 03</div>
+        <h2>Frontend <span>Development</span></h2>
+        <p class="ws-desc">
+          Build real websites from scratch. Learn HTML, CSS, and JavaScript — then put them together to create responsive, animated, and fully functional web pages you can show to employers.
+        </p>
+        <div class="ws-features">
+          <div class="ws-feat"><span class="ws-feat-icon">🧱</span><div class="ws-feat-text"><em>HTML5 &amp; CSS3 Mastery</em> — semantic structure, Flexbox, Grid, animations</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">⚡</span><div class="ws-feat-text"><em>JavaScript Fundamentals</em> — DOM manipulation, events, dynamic content</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">📱</span><div class="ws-feat-text"><em>Responsive Design</em> — make sites look perfect on any screen size</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">🚀</span><div class="ws-feat-text"><em>Deploy Your Site</em> — publish live on GitHub Pages or Netlify for free</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">🔥</span><div class="ws-feat-text">Build <em>3 complete projects</em> that prove your skills to any recruiter</div></div>
+        </div>
+        <div class="ws-meta">
+          <div class="ws-meta-chip"><span>🎯</span><span>Beginner Friendly</span></div>
+          <div class="ws-meta-chip"><span>💻</span><span>Online &amp; Offline</span></div>
+          <div class="ws-meta-chip"><span>🏅</span><span>Certificate Included</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 04: BUSINESS IDEA & DEVELOPMENT ─── -->
+    <div class="workshop-block flip au d2">
+      <div class="ws-visual">
+        <div class="ws-visual-bg" style="background:linear-gradient(135deg,#1a1000 0%,#2a1800 40%,#1a0f00 100%);"></div>
+        <div class="ws-visual-grid"></div>
+        <div class="ws-visual-scan"></div>
+        <span class="ws-emoji">🚀</span>
+       
+      </div>
+
+      <div class="ws-info">
+        <div class="ws-tag"><span class="ws-tag-dot"></span>Workshop 04</div>
+        <h2>Business Idea &amp; <span>Development</span></h2>
+        <p class="ws-desc">
+          Turn your idea into a real business. Learn how to validate concepts, build a business model, pitch to investors, and launch your startup with a solid digital foundation.
+        </p>
+        <div class="ws-features">
+          <div class="ws-feat"><span class="ws-feat-icon">💡</span><div class="ws-feat-text"><em>Idea Validation &amp; Market Research</em> — know if your idea will work before you build</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">📊</span><div class="ws-feat-text"><em>Business Model Canvas</em> — map out revenue, customers, and operations visually</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">🎤</span><div class="ws-feat-text"><em>Pitch Deck Creation</em> — craft a presentation that wins over investors and clients</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">📣</span><div class="ws-feat-text"><em>Digital Marketing for Startups</em> — social media, SEO, and growth hacking basics</div></div>
+          <div class="ws-feat"><span class="ws-feat-icon">🌐</span><div class="ws-feat-text">Leave with a <em>launch-ready plan</em> and your own business profile online</div></div>
+        </div>
+        <div class="ws-meta">
+          <div class="ws-meta-chip"><span>🎯</span><span>Aspiring Founders</span></div>
+          <div class="ws-meta-chip"><span>💻</span><span>Online &amp; Offline</span></div>
+          <div class="ws-meta-chip"><span>🏅</span><span>Certificate Included</span></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="footer">
+    <span class="footer-logo">NN<em> Nexus</em></span>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="#workshops">Workshops</a>
+    </div>
+    <span class="footer-copy">© 2026 NN Nexus. All rights reserved.</span>
+  </footer>
+
+</div><!-- /page -->
+
+
+<script>
+/* ═══════════════════════
+   NETWORK CANVAS
+═══════════════════════ */
+(function() {
+  var canvas = document.getElementById('net-canvas'),
+      ctx    = canvas.getContext('2d'),
+      W, H, pts, NUM=70, DIST=140,
+      mouse  = { x:-999, y:-999 };
+
+  function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+
+  function init() {
+    pts = [];
+    for (var i=0; i<NUM; i++) {
+      pts.push({
+        x : Math.random()*W,       y : Math.random()*H,
+        vx: (Math.random()-.5)*.4, vy: (Math.random()-.5)*.4
+      });
+    }
+  }
+
+  function frame() {
+    ctx.clearRect(0,0,W,H);
+    for (var i=0; i<pts.length; i++) {
+      for (var j=i+1; j<pts.length; j++) {
+        var dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.hypot(dx,dy);
+        if (d<DIST) {
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.strokeStyle='rgba(0,255,255,'+(1-d/DIST)*.22+')';
+          ctx.lineWidth=0.6; ctx.stroke();
+        }
+      }
+      var md=Math.hypot(pts[i].x-mouse.x,pts[i].y-mouse.y);
+      if (md<175) {
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(mouse.x,mouse.y);
+        ctx.strokeStyle='rgba(0,255,255,'+(1-md/175)*.45+')';
+        ctx.lineWidth=0.9; ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(pts[i].x,pts[i].y,1.4,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,255,255,.65)'; ctx.fill();
+      pts[i].x+=pts[i].vx; pts[i].y+=pts[i].vy;
+      if(pts[i].x<0||pts[i].x>W) pts[i].vx*=-1;
+      if(pts[i].y<0||pts[i].y>H) pts[i].vy*=-1;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize',     function()  { resize(); init(); });
+  addEventListener('mousemove',  function(e) { mouse.x=e.clientX; mouse.y=e.clientY; });
+  addEventListener('mouseleave', function()  { mouse.x=mouse.y=-999; });
+  resize(); init(); frame();
+})();
+</script>
+
+</body>
+</html>

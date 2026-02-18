@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book a Workshop — NN Nexus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cyan      : #00ffff;
+  --cyan-dim  : rgba(0,255,255,0.10);
+  --cyan-glow : rgba(0,255,255,0.22);
+  --glass     : rgba(6,10,18,0.72);
+  --glass2    : rgba(8,14,22,0.88);
+  --muted     : #a0b4c0;
+  --error     : #ff4d6d;
+  --success   : #00ffaa;
+  --radius    : 16px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  min-height:100vh;
+  background:#020508;
+  color:#fff;
+  font-family:'Rajdhani', sans-serif;
+  overflow-x:hidden;
+}
+
+/* ── CANVAS ── */
+#net-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp  { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+@keyframes scanLine{ 0%{top:-40px} 100%{top:110%} }
+@keyframes pulseDot{ 0%,100%{box-shadow:0 0 4px var(--cyan)} 50%{box-shadow:0 0 16px var(--cyan)} }
+@keyframes shimmer {
+  0%  { background-position:-200% center; }
+  100%{ background-position:200% center; }
+}
+@keyframes checkPop{
+  0%  { transform:scale(0) rotate(-10deg); opacity:0; }
+  70% { transform:scale(1.15) rotate(3deg); opacity:1; }
+  100%{ transform:scale(1) rotate(0deg);   opacity:1; }
+}
+
+/* ── NAVBAR ── */
+.navbar {
+  position:fixed; top:0; width:100%; height:68px;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0 60px;
+  background:rgba(2,5,8,0.75);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--cyan-glow);
+  z-index:999;
+}
+.nav-logo {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:20px; font-weight:900;
+  color:var(--cyan); letter-spacing:2px; text-decoration:none;
+}
+.nav-logo em { color:#fff; font-style:normal; }
+.nav-back {
+  display:flex; align-items:center; gap:8px;
+  color:var(--muted); text-decoration:none;
+  font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  transition:color 0.3s;
+}
+.nav-back:hover { color:var(--cyan); }
+.nav-back span { font-size:18px; }
+
+/* ── PAGE WRAPPER ── */
+.page {
+  position:relative; z-index:1;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+  padding-top:68px;
+}
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  padding:70px 60px;
+  display:flex; flex-direction:column; justify-content:center;
+  position:relative; overflow:hidden;
+  border-right:1px solid var(--cyan-glow);
+}
+
+.left-panel::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0,255,255,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 80% 80%, rgba(0,80,120,0.07) 0%, transparent 60%);
+  pointer-events:none;
+}
+
+.badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  border-radius:40px; padding:6px 16px;
+  font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:28px; width:fit-content;
+  animation:fadeUp 0.6s ease both;
+}
+.badge-dot {
+  width:6px; height:6px; border-radius:50%; background:var(--cyan);
+  animation:pulseDot 1.8s ease-in-out infinite;
+}
+
+.left-panel h1 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(28px,3.5vw,48px); font-weight:900;
+  line-height:1.1; margin-bottom:20px;
+  animation:fadeUp 0.6s 0.1s ease both;
+}
+.left-panel h1 .accent {
+  background:linear-gradient(90deg,#00ffff,#ffffff,#00ffff);
+  background-size:200% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 3.5s linear infinite;
+}
+
+.left-panel p {
+  font-size:16px; color:var(--muted); line-height:1.7;
+  max-width:420px; margin-bottom:48px;
+  animation:fadeUp 0.6s 0.2s ease both;
+}
+
+/* Workshop options list */
+.workshop-list {
+  display:flex; flex-direction:column; gap:14px;
+  animation:fadeUp 0.6s 0.3s ease both;
+}
+.ws-item {
+  display:flex; align-items:center; gap:14px;
+  padding:16px 20px;
+  background:var(--glass);
+  border:1px solid var(--cyan-glow); border-radius:12px;
+  transition:border-color 0.3s, transform 0.3s;
+  cursor:default;
+}
+.ws-item:hover { border-color:rgba(0,255,255,0.5); transform:translateX(6px); }
+.ws-item-icon {
+  font-size:22px; width:44px; height:44px;
+  border-radius:10px; display:flex; align-items:center; justify-content:center;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow); flex-shrink:0;
+}
+.ws-item-info h4 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:13px; font-weight:700; color:#fff; margin-bottom:3px;
+}
+.ws-item-info p { font-size:13px; color:var(--muted); }
+.ws-arrow { margin-left:auto; color:var(--cyan); opacity:0.4; font-size:16px; }
+
+/* ── RIGHT PANEL — FORM ── */
+.right-panel {
+  padding:60px 60px;
+  display:flex; flex-direction:column; justify-content:center;
+  overflow-y:auto;
+}
+
+.form-header { margin-bottom:36px; animation:fadeUp 0.6s 0.15s ease both; }
+.form-header h2 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:22px; font-weight:700; color:#fff; margin-bottom:8px;
+}
+.form-header p { font-size:14px; color:var(--muted); }
+
+/* Form card */
+.form-card {
+  background:var(--glass2);
+  border:1px solid var(--cyan-glow); border-radius:20px;
+  padding:36px 36px 40px;
+  position:relative; overflow:hidden;
+  animation:fadeUp 0.6s 0.25s ease both;
+}
+.form-card::before {
+  content:''; position:absolute; top:0; left:8%; right:8%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,0.5),transparent);
+}
+.form-card::after {
+  content:''; position:absolute; left:0; right:0; height:36px;
+  background:linear-gradient(to bottom,transparent,rgba(0,255,255,0.02),transparent);
+  animation:scanLine 6s linear infinite;
+  pointer-events:none;
+}
+
+/* Field rows */
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px; }
+.field-row.single { grid-template-columns:1fr; }
+
+.field { display:flex; flex-direction:column; gap:7px; }
+
+.field label {
+  font-size:10px; font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--muted);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width:100%;
+  padding:13px 16px;
+  border-radius:9px;
+  border:1px solid var(--cyan-glow);
+  background:rgba(0,255,255,0.04);
+  color:#fff;
+  font-family:'Rajdhani', sans-serif;
+  font-size:15px; font-weight:500;
+  outline:none;
+  transition:all 0.3s;
+  appearance:none;
+  -webkit-appearance:none;
+}
+.field select {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300ffff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  padding-right:40px;
+  cursor:pointer;
+}
+.field select option { background:#0d1520; color:#fff; }
+
+.field textarea {
+  resize:vertical; min-height:90px; line-height:1.5;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color:var(--cyan);
+  background:rgba(0,255,255,0.07);
+  box-shadow:0 0 18px rgba(0,255,255,0.15);
+}
+.field input.err,
+.field select.err { border-color:var(--error); box-shadow:0 0 10px rgba(255,77,109,0.2); }
+
+.field input::placeholder,
+.field textarea::placeholder { color:rgba(160,180,192,0.45); }
+
+/* Workshop select — styled grid of chips */
+.ws-chips { display:flex; flex-wrap:wrap; gap:10px; }
+.ws-chip {
+  padding:9px 16px;
+  border-radius:8px;
+  border:1px solid var(--cyan-glow);
+  background:rgba(0,255,255,0.04);
+  color:var(--muted);
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:1px;
+  cursor:pointer; transition:all 0.25s; user-select:none;
+}
+.ws-chip:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+.ws-chip.selected {
+  background:var(--cyan); color:#000;
+  border-color:var(--cyan);
+  box-shadow:0 0 16px rgba(0,255,255,0.3);
+}
+
+/* Error / success messages */
+.form-msg {
+  padding:11px 16px; border-radius:9px;
+  font-size:13px; font-weight:600; letter-spacing:0.5px;
+  display:none; margin-bottom:16px;
+}
+.form-msg.show { display:block; }
+.form-msg.err { background:rgba(255,77,109,0.1); border:1px solid rgba(255,77,109,0.3); color:var(--error); }
+.form-msg.ok  { background:rgba(0,255,170,0.1);  border:1px solid rgba(0,255,170,0.3);  color:var(--success); }
+
+/* Submit button */
+.btn-submit {
+  width:100%; padding:16px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:2px;
+  color:#000; background:var(--cyan);
+  border:none; border-radius:10px; cursor:pointer;
+  transition:all 0.3s; margin-top:6px;
+  position:relative; overflow:hidden;
+}
+.btn-submit::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform:translateX(-100%); transition:transform 0.5s;
+}
+.btn-submit:hover::before { transform:translateX(100%); }
+.btn-submit:hover {
+  background:#fff;
+  box-shadow:0 0 32px rgba(0,255,255,0.45);
+  transform:translateY(-2px);
+}
+
+/* ── SUCCESS OVERLAY ── */
+.success-overlay {
+  display:none;
+  position:fixed; inset:0; z-index:2000;
+  background:rgba(2,5,8,0.92);
+  backdrop-filter:blur(16px);
+  justify-content:center; align-items:center;
+  flex-direction:column; gap:20px;
+  text-align:center; padding:40px;
+}
+.success-overlay.show { display:flex; }
+.success-icon {
+  width:90px; height:90px; border-radius:50%;
+  background:rgba(0,255,170,0.1);
+  border:2px solid var(--success);
+  display:flex; align-items:center; justify-content:center;
+  font-size:40px;
+  animation:checkPop 0.5s 0.1s ease both;
+}
+.success-overlay h2 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(20px,3vw,28px); font-weight:900; color:#fff;
+}
+.success-overlay p { font-size:16px; color:var(--muted); max-width:420px; line-height:1.7; }
+.success-overlay .s-name { color:var(--cyan); font-weight:700; }
+.btn-back-home {
+  margin-top:10px;
+  padding:14px 32px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:2px;
+  color:#000; background:var(--cyan); border:none;
+  border-radius:9px; cursor:pointer; text-decoration:none;
+  display:inline-block; transition:all 0.3s;
+}
+.btn-back-home:hover { background:#fff; transform:translateY(-2px); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar       { width:5px; }
+::-webkit-scrollbar-track { background:#000; }
+::-webkit-scrollbar-thumb { background:rgba(0,255,255,0.3); border-radius:3px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px) {
+  .page { grid-template-columns:1fr; }
+  .left-panel { border-right:none; border-bottom:1px solid var(--cyan-glow); padding:50px 32px 40px; }
+  .workshop-list { display:none; }
+  .right-panel { padding:40px 32px 60px; }
+  .navbar { padding:0 28px; }
+}
+@media(max-width:560px) {
+  .field-row { grid-template-columns:1fr; }
+  .form-card { padding:24px 20px 28px; }
+  .left-panel h1 { font-size:26px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="net-canvas"></canvas>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">NN<em> Nexus</em></a>
+  <a href="home.html" class="nav-back"><span>←</span> Back to Home</a>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Enrollments Open
+    </div>
+    <h1>Book Your<br><span class="accent">Workshop Slot</span></h1>
+    <p>
+      Join hands-on sessions led by industry professionals. Fill in your details and we'll confirm your seat within 24 hours.
+    </p>
+
+    <div class="workshop-list">
+      <div class="ws-item">
+        <div class="ws-item-icon">🌐</div>
+        <div class="ws-item-info">
+          <h4>Web Development</h4>
+          <p>HTML · CSS · JS · React</p>
+        </div>
+        <span class="ws-arrow">›</span>
+      </div>
+      <div class="ws-item">
+        <div class="ws-item-icon">🎨</div>
+        <div class="ws-item-info">
+          <h4>UI/UX & Graphic Design</h4>
+          <p>Figma · Branding · Canva</p>
+        </div>
+        <span class="ws-arrow">›</span>
+      </div>
+      <div class="ws-item">
+        <div class="ws-item-icon">📣</div>
+        <div class="ws-item-info">
+          <h4>Digital Marketing</h4>
+          <p>SEO · Social Media · Ads</p>
+        </div>
+        <span class="ws-arrow">›</span>
+      </div>
+      <div class="ws-item">
+        <div class="ws-item-icon">🤖</div>
+        <div class="ws-item-info">
+          <h4>Poster Making</h4>
+          <p>Canva · Photoshop · Tools</p>
+        </div>
+        <span class="ws-arrow">›</span>
+      </div>
+      <div class="ws-item">
+        <div class="ws-item-icon">🐍</div>
+        <div class="ws-item-info">
+          <h4>Startup Support</h4>
+          <p>Business Planning · Pitch Deck · Funding</p>
+        </div>
+        <span class="ws-arrow">›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL — FORM -->
+  <div class="right-panel">
+    <div class="form-header">
+      <h2>Registration Form</h2>
+      <p>All fields are required. We'll reach out to your email to confirm.</p>
+    </div>
+
+    <form class="form-card" id="booking-form" action="https://formsubmit.co/nnnexus2804@gmail.com" method="POST">
+
+      <!-- FormSubmit hidden config fields -->
+      <input type="hidden" name="_captcha"      value="false">
+      <input type="hidden" name="_subject"      value="NN Nexus Workshop Booking">
+      <input type="hidden" name="_template"     value="table">
+      <input type="hidden" name="_autoresponse" value="Your workshop booking request has been received. NN Nexus will contact you shortly.">
+      <input type="hidden" name="_next"         value="javascript:void(0)">
+
+      <div class="field-row">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="f-name" name="Name" placeholder="e.g. Arjun Kumar">
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="f-email" name="Email" placeholder="you@example.com">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>College / Institution</label>
+          <input type="text" id="f-college" name="College" placeholder="e.g. PSG College of Arts">
+        </div>
+        <div class="field">
+          <label>Year of Study</label>
+          <select id="f-year" name="Year">
+            <option value="" disabled selected>Select year</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+            <option value="PG / Masters">PG / Masters</option>
+            <option value="PhD">PhD</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row single">
+        <div class="field">
+          <label>Department</label>
+          <select id="f-dept" name="Department">
+            <option value="" disabled selected>Select department</option>
+            <option>Computer Science & Engineering</option>
+            <option>Information Technology</option>
+            <option>Electronics & Communication</option>
+            <option>Electrical Engineering</option>
+            <option>Mechanical Engineering</option>
+            <option>Civil Engineering</option>
+            <option>Business Administration / MBA</option>
+            <option>Arts & Science</option>
+            <option>Commerce</option>
+            <option>Design</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row single" style="margin-bottom:10px;">
+        <div class="field">
+          <label>Workshop to Book</label>
+          <div class="ws-chips" id="ws-chips">
+            <div class="ws-chip" data-value="Web Development" onclick="selectChip(this)">Web Development</div>
+            <div class="ws-chip" data-value="UI/UX & Graphic Design" onclick="selectChip(this)">UI/UX & Design</div>
+            <div class="ws-chip" data-value="Digital Marketing" onclick="selectChip(this)">Digital Marketing</div>
+            <div class="ws-chip" data-value="AI & Prompt Engineering" onclick="selectChip(this)">Poster Making</div>
+          </div>
+          <input type="hidden" id="f-workshop" name="Workshop">
+        </div>
+      </div>
+
+      <div class="field-row single" style="margin-top:8px;">
+        <div class="field">
+          <label>Mobile Number <span style="opacity:0.5;font-size:9px;"></span></label>
+           <input type="tel" id="f-mobile" name="Mobile Number" placeholder="Mobile Number">
+        </div>
+      </div>
+
+      <div class="form-msg err" id="form-err"></div>
+      <div class="form-msg ok"  id="form-ok"></div>
+
+      <button class="btn-submit" type="submit">CONFIRM BOOKING →</button>
+
+    </form>
+  </div>
+
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-icon">✓</div>
+  <h2>Booking Confirmed!</h2>
+  <p>
+    Thank you, <span class="s-name" id="s-name-display">Student</span>! Your registration for
+    <span class="s-name" id="s-ws-display">the workshop</span> has been received.
+    We'll send a confirmation to your email shortly.
+  </p>
+  <a href="home.html" class="btn-back-home">← Back to Home</a>
+</div>
+
+<!-- CANVAS SCRIPT -->
+<script>
+/* ── CHIP SELECTION ── */
+var selectedWorkshop = '';
+function selectChip(el) {
+  document.querySelectorAll('.ws-chip').forEach(function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedWorkshop = el.getAttribute('data-value');
+  document.getElementById('f-workshop').value = selectedWorkshop;
+  document.getElementById('f-workshop').classList.remove('err');
+}
+
+/* ── HELPERS ── */
+function showMsg(id, txt) {
+  var el = document.getElementById(id);
+  el.textContent = txt; el.classList.add('show');
+}
+function hideMsg(id) {
+  var el = document.getElementById(id);
+  el.textContent = ''; el.classList.remove('show');
+}
+function markErr(id) { document.getElementById(id).classList.add('err'); }
+function clearErrs() {
+  ['f-name','f-email','f-college','f-year','f-dept'].forEach(function(id){
+    document.getElementById(id).classList.remove('err');
+  });
+}
+
+/* ── FORMSUBMIT INTEGRATION ── */
+const form = document.getElementById('booking-form');
+form.addEventListener('submit', function(e) {
+  e.preventDefault();
+  clearErrs();
+  hideMsg('form-err');
+  hideMsg('form-ok');
+
+  var name    = document.getElementById('f-name').value.trim();
+  var email   = document.getElementById('f-email').value.trim();
+  var college = document.getElementById('f-college').value.trim();
+  var year    = document.getElementById('f-year').value;
+  var dept    = document.getElementById('f-dept').value;
+  var ws      = selectedWorkshop;
+
+  if (!name)    { markErr('f-name');    showMsg('form-err','⚠ Please enter your full name.');         return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                { markErr('f-email');   showMsg('form-err','⚠ Please enter a valid email address.'); return; }
+  if (!college) { markErr('f-college'); showMsg('form-err','⚠ Please enter your college name.');      return; }
+  if (!year)    { markErr('f-year');    showMsg('form-err','⚠ Please select your year of study.');    return; }
+  if (!dept)    { markErr('f-dept');    showMsg('form-err','⚠ Please select your department.');       return; }
+  if (!ws)      {                       showMsg('form-err','⚠ Please select a workshop to book.');    return; }
+
+  /* Disable button to prevent double-submit */
+  var btn = form.querySelector('.btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'SENDING…';
+
+  const data = new FormData(form);
+  fetch(form.action, {
+    method: 'POST',
+    body: data,
+    headers: { 'Accept': 'application/json' }
+  }).then(function(response) {
+    /* Show success overlay */
+    document.getElementById('s-name-display').textContent = name;
+    document.getElementById('s-ws-display').textContent   = ws;
+    document.getElementById('success-overlay').classList.add('show');
+    /* Reset form */
+    form.reset();
+    document.querySelectorAll('.ws-chip').forEach(function(c){ c.classList.remove('selected'); });
+    selectedWorkshop = '';
+    btn.disabled = false;
+    btn.textContent = 'CONFIRM BOOKING →';
+  }).catch(function(error) {
+    showMsg('form-err','❌ Failed to send. Please try again.');
+    btn.disabled = false;
+    btn.textContent = 'CONFIRM BOOKING →';
+  });
+});
+
+/* ── NETWORK CANVAS ── */
+(function () {
+  var canvas = document.getElementById('net-canvas'),
+      ctx    = canvas.getContext('2d'),
+      W, H, pts,
+      NUM  = 70,
+      DIST = 140,
+      mouse = { x:-999, y:-999 };
+
+  function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+
+  function init() {
+    pts = [];
+    for (var i = 0; i < NUM; i++) {
+      pts.push({
+        x : Math.random() * W, y : Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4
+      });
+    }
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < pts.length; i++) {
+      for (var j = i + 1; j < pts.length; j++) {
+        var dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y,
+            d  = Math.hypot(dx, dy);
+        if (d < DIST) {
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.strokeStyle = 'rgba(0,255,255,' + (1 - d / DIST) * 0.22 + ')';
+          ctx.lineWidth = 0.6; ctx.stroke();
+        }
+      }
+      var md = Math.hypot(pts[i].x - mouse.x, pts[i].y - mouse.y);
+      if (md < 160) {
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x, pts[i].y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.strokeStyle = 'rgba(0,255,255,' + (1 - md / 160) * 0.45 + ')';
+        ctx.lineWidth = 0.8; ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(pts[i].x, pts[i].y, 1.4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,255,255,0.65)';
+      ctx.fill();
+      pts[i].x += pts[i].vx; pts[i].y += pts[i].vy;
+      if (pts[i].x < 0 || pts[i].x > W) pts[i].vx *= -1;
+      if (pts[i].y < 0 || pts[i].y > H) pts[i].vy *= -1;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize',     function ()  { resize(); init(); });
+  addEventListener('mousemove',  function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+  addEventListener('mouseleave', function ()  { mouse.x = mouse.y = -999; });
+  resize(); init(); frame();
+})();
+</script>
+</body>
+</html>

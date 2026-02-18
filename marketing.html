@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NN Nexus — Digital Marketing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cyan       : #00ffff;
+  --cyan-dim   : rgba(0,255,255,0.10);
+  --cyan-glow  : rgba(0,255,255,0.22);
+  --glass      : rgba(6,10,18,0.72);
+  --glass2     : rgba(8,14,22,0.88);
+  --muted      : #a0b4c0;
+  --radius     : 18px;
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { min-height:100vh; background:#020508; color:#fff; font-family:'Rajdhani',sans-serif; overflow-x:hidden; }
+
+#net-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+@keyframes fadeUp    { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeRight { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+@keyframes pulseDot  { 0%,100%{box-shadow:0 0 5px var(--cyan)} 50%{box-shadow:0 0 16px var(--cyan)} }
+@keyframes shimmer   { 0%{background-position:-200% center} 100%{background-position:200% center} }
+@keyframes rotateSlow{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes stepScan  { 0%{left:-60px} 100%{left:110%} }
+
+.au { animation:fadeUp    0.7s ease both; }
+.ar { animation:fadeRight 0.7s ease both; }
+.d1 { animation-delay:0.08s; }
+.d2 { animation-delay:0.18s; }
+.d3 { animation-delay:0.30s; }
+.d4 { animation-delay:0.42s; }
+.d5 { animation-delay:0.55s; }
+
+/* ── NAVBAR ── */
+.navbar {
+  position:fixed; top:0; width:100%; height:68px;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0 60px;
+  background:rgba(2,5,8,0.72);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--cyan-glow); z-index:999;
+}
+.nav-logo { font-family:'Orbitron',monospace,sans-serif; font-size:20px; font-weight:900; color:var(--cyan); letter-spacing:2px; text-decoration:none; }
+.nav-logo em { color:#fff; font-style:normal; }
+.nav-links { display:flex; gap:36px; }
+.nav-links a {
+  color:var(--muted); text-decoration:none; font-size:13px; font-weight:600;
+  letter-spacing:1.5px; text-transform:uppercase; transition:color 0.3s; position:relative;
+}
+.nav-links a::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:1px; background:var(--cyan); transition:width 0.3s; }
+.nav-links a:hover        { color:var(--cyan); }
+.nav-links a:hover::after { width:100%; }
+.nav-links a.active       { color:var(--cyan); }
+.nav-links a.active::after{ width:100%; }
+
+/* ── PAGE ── */
+.page { position:relative; z-index:1; padding-top:68px; }
+
+/* ── HERO ── */
+.hero {
+  padding:90px 60px 80px;
+  display:grid; grid-template-columns:1fr 1fr;
+  align-items:center; gap:70px;
+  position:relative; overflow:hidden;
+  min-height:calc(100vh - 68px);
+}
+.hero-orb { position:absolute; border-radius:50%; pointer-events:none; z-index:0; }
+.hero-orb-1 { width:600px; height:600px; right:-200px; top:-100px; border:1px solid rgba(0,255,255,0.05); animation:rotateSlow 40s linear infinite; }
+.hero-orb-2 { width:400px; height:400px; right:-80px; top:20px; border:1px solid rgba(168,85,247,0.06); animation:rotateSlow 25s linear infinite reverse; }
+.hero-orb-3 { width:220px; height:220px; right:80px; top:130px; background:radial-gradient(circle,rgba(0,255,255,0.04) 0%,transparent 70%); }
+
+.hero-left { position:relative; z-index:1; }
+
+.hero-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  border-radius:40px; padding:6px 18px;
+  font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:26px;
+}
+.badge-dot { width:6px; height:6px; border-radius:50%; background:var(--cyan); animation:pulseDot 1.8s ease-in-out infinite; }
+
+.hero h1 { font-family:'Orbitron',monospace,sans-serif; font-size:clamp(28px,4.5vw,58px); font-weight:900; line-height:1.1; margin-bottom:16px; }
+.hero h1 .accent {
+  background:linear-gradient(90deg,#00ffff,#a855f7,#00ffff); background-size:200% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  animation:shimmer 4s linear infinite;
+}
+.hero-sub { font-family:'Orbitron',monospace,sans-serif; font-size:clamp(14px,1.8vw,20px); font-weight:700; color:var(--cyan); margin-bottom:18px; letter-spacing:0.5px; }
+.hero-intro { font-size:16px; color:var(--muted); line-height:1.75; max-width:480px; margin-bottom:40px; }
+
+.hero-pills { display:flex; gap:12px; flex-wrap:wrap; }
+.hero-pill {
+  display:flex; align-items:center; gap:8px; padding:9px 18px;
+  background:var(--glass2); border:1px solid var(--cyan-glow);
+  border-radius:40px; font-size:13px; font-weight:700; color:#fff;
+  transition:border-color 0.3s, background 0.3s;
+}
+.hero-pill:hover { border-color:var(--cyan); background:var(--cyan-dim); }
+.hero-pill-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+/* Hero right cards */
+.hero-right { position:relative; z-index:1; display:flex; flex-direction:column; gap:14px; animation:fadeRight 0.9s 0.2s ease both; }
+.hero-visual-card {
+  background:var(--glass); border:1px solid var(--cyan-glow); border-radius:16px;
+  padding:20px 24px; display:flex; align-items:center; gap:18px;
+  position:relative; overflow:hidden;
+  transition:transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.hero-visual-card::before {
+  content:''; position:absolute; left:0; top:15%; bottom:15%;
+  width:2px; border-radius:2px; background:var(--cyan); box-shadow:0 0 6px var(--cyan);
+}
+.hero-visual-card:hover { transform:translateX(6px); border-color:rgba(0,255,255,0.45); box-shadow:0 8px 40px rgba(0,0,0,0.6); }
+.hvc-icon { width:52px; height:52px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:24px; }
+.hvc-text h4 { font-family:'Orbitron',monospace,sans-serif; font-size:13px; font-weight:700; color:#fff; margin-bottom:3px; }
+.hvc-text p  { font-size:13px; color:var(--muted); line-height:1.4; }
+.hvc-arrow { margin-left:auto; font-size:18px; color:var(--cyan); opacity:0.4; flex-shrink:0; transition:opacity 0.3s, transform 0.3s; }
+.hero-visual-card:hover .hvc-arrow { opacity:1; transform:translateX(4px); }
+
+/* ── DIVIDER ── */
+.divider { height:1px; margin:0 60px; background:linear-gradient(90deg,transparent,var(--cyan-glow),transparent); }
+
+/* ── SECTIONS ── */
+.section { padding:90px 60px; }
+.sec-label { font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--cyan); margin-bottom:10px; }
+.sec-title { font-family:'Orbitron',monospace,sans-serif; font-size:clamp(22px,3vw,36px); font-weight:700; color:#fff; margin-bottom:14px; }
+.sec-sub   { font-size:16px; color:var(--muted); max-width:560px; line-height:1.65; margin-bottom:56px; }
+
+/* ── SERVICES GRID ── */
+.services-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:24px; }
+.svc-card {
+  background:var(--glass); border:1px solid var(--cyan-glow); border-radius:var(--radius);
+  padding:34px 30px; position:relative; overflow:hidden;
+  transition:transform 0.35s, border-color 0.35s, box-shadow 0.35s; cursor:default;
+}
+.svc-card::before {
+  content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,0.4),transparent);
+}
+.svc-card:hover { transform:translateY(-8px); border-color:rgba(0,255,255,0.45); box-shadow:0 24px 60px rgba(0,0,0,0.8),0 0 40px rgba(0,255,255,0.08); }
+.svc-card .bg-num { position:absolute; right:18px; top:10px; font-family:'Orbitron',monospace,sans-serif; font-size:56px; font-weight:900; color:rgba(0,255,255,0.04); pointer-events:none; user-select:none; }
+.svc-icon-wrap { width:58px; height:58px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:26px; margin-bottom:20px; background:var(--cyan-dim); border:1px solid var(--cyan-glow); }
+.svc-card h3 { font-family:'Orbitron',monospace,sans-serif; font-size:15px; font-weight:700; color:#fff; margin-bottom:10px; }
+.svc-card p  { font-size:14px; color:var(--muted); line-height:1.65; }
+.svc-tag { display:inline-block; margin-top:16px; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--cyan); background:var(--cyan-dim); border:1px solid var(--cyan-glow); border-radius:4px; padding:3px 10px; }
+
+/* ── STRATEGY STEPS ── */
+.strategy-section { padding:0 60px 90px; }
+.steps-track {
+  position:relative; display:flex; gap:0;
+  background:var(--glass2); border:1px solid var(--cyan-glow); border-radius:20px;
+  overflow:hidden; margin-top:56px;
+}
+.steps-track::after {
+  content:''; position:absolute; top:0; bottom:0; width:60px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,0.04),transparent);
+  animation:stepScan 4s linear infinite; pointer-events:none;
+}
+.step {
+  flex:1; padding:36px 28px; position:relative;
+  border-right:1px solid var(--cyan-glow); text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  transition:background 0.35s; overflow:hidden;
+}
+.step:last-child { border-right:none; }
+.step:hover { background:rgba(0,255,255,0.04); }
+.step::before { content:''; position:absolute; top:0; left:15%; right:15%; height:2px; background:linear-gradient(90deg,transparent,var(--cyan),transparent); opacity:0; transition:opacity 0.3s; }
+.step:hover::before { opacity:1; }
+.step-num   { font-family:'Orbitron',monospace,sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(0,255,255,0.4); }
+.step-icon  { width:60px; height:60px; border-radius:50%; background:var(--cyan-dim); border:1px solid var(--cyan-glow); display:flex; align-items:center; justify-content:center; font-size:26px; transition:box-shadow 0.3s, border-color 0.3s; }
+.step:hover .step-icon { border-color:var(--cyan); box-shadow:0 0 20px rgba(0,255,255,0.25); }
+.step-title { font-family:'Orbitron',monospace,sans-serif; font-size:14px; font-weight:700; color:#fff; }
+.step-desc  { font-size:13px; color:var(--muted); line-height:1.55; }
+
+.step-arrow { position:absolute; right:-1px; top:50%; transform:translateY(-50%); width:0; height:0; border-top:10px solid transparent; border-bottom:10px solid transparent; border-left:12px solid var(--cyan-glow); z-index:2; display:none; }
+@media(min-width:961px) { .step:not(:last-child) .step-arrow { display:block; } }
+
+.steps-progress { margin-top:20px; height:3px; border-radius:2px; background:rgba(0,255,255,0.08); overflow:hidden; }
+.steps-progress-fill { height:100%; border-radius:2px; width:100%; background:linear-gradient(90deg,var(--cyan),#a855f7,var(--cyan)); background-size:200% auto; animation:shimmer 3s linear infinite; }
+
+/* ── FOOTER ── */
+.footer { padding:36px 60px; border-top:1px solid var(--cyan-glow); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); }
+.footer-logo { font-family:'Orbitron',monospace,sans-serif; font-size:18px; font-weight:900; color:var(--cyan); letter-spacing:2px; }
+.footer-logo em { color:#fff; font-style:normal; }
+.footer-links { display:flex; gap:28px; }
+.footer-links a { font-size:13px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+.footer-links a:hover { color:var(--cyan); }
+.footer-copy { font-size:12px; color:var(--muted); }
+
+::-webkit-scrollbar       { width:5px; }
+::-webkit-scrollbar-track { background:#000; }
+::-webkit-scrollbar-thumb { background:rgba(0,255,255,0.3); border-radius:3px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px) {
+  .hero { grid-template-columns:1fr; min-height:auto; padding-bottom:50px; }
+  .hero-right { display:none; }
+}
+@media(max-width:960px) {
+  .services-grid  { grid-template-columns:1fr; }
+  .steps-track    { flex-direction:column; }
+  .step           { border-right:none; border-bottom:1px solid var(--cyan-glow); }
+  .step:last-child{ border-bottom:none; }
+  .navbar,.section,.strategy-section,.footer { padding-left:28px; padding-right:28px; }
+  .hero    { padding-left:28px; padding-right:28px; }
+  .divider { margin:0 28px; }
+}
+@media(max-width:620px) {
+  .nav-links  { display:none; }
+  .hero-pills { gap:8px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="net-canvas"></canvas>
+
+<div class="page">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">NN<em> Nexus</em></a>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+
+    <div class="hero-left">
+      <div class="hero-badge au d1"><span class="badge-dot"></span>Digital Growth Services</div>
+
+      <h1 class="au d2">
+        Grow Faster with<br>
+        <span class="accent">Digital Marketing</span>
+      </h1>
+
+      <p class="hero-sub au d3">Reach More People. Get More Customers.</p>
+
+      <p class="hero-intro au d4">
+        We help businesses increase visibility, traffic, and conversions using proven marketing strategies — tailored to your goals and built to deliver measurable results.
+      </p>
+
+      <div class="hero-pills au d5">
+        <div class="hero-pill"><span class="hero-pill-dot" style="background:#00ffff;"></span>SEO</div>
+        <div class="hero-pill"><span class="hero-pill-dot" style="background:#a855f7;"></span>Social Media</div>
+        <div class="hero-pill"><span class="hero-pill-dot" style="background:#00ff88;"></span>Paid Ads</div>
+        <div class="hero-pill"><span class="hero-pill-dot" style="background:#ffd700;"></span>Branding</div>
+      </div>
+    </div>
+
+    
+
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SERVICES -->
+  <section class="section" id="services">
+    <p class="sec-label au d1">// What We Do</p>
+    <h2 class="sec-title au d2">Our Marketing Services</h2>
+    <p class="sec-sub au d3">From search engines to social feeds — we cover every channel that matters for your growth.</p>
+
+    <div class="services-grid">
+      <div class="svc-card au d2">
+        <span class="bg-num">01</span>
+        <div class="svc-icon-wrap">🔍</div>
+        <h3>Search Engine Optimization (SEO)</h3>
+        <p>Rank your website on Google search results and capture high-intent traffic. We handle technical SEO, on-page content, link building, and keyword strategy to move you up the rankings — and keep you there.</p>
+        <span class="svc-tag">Organic Growth</span>
+      </div>
+
+      <div class="svc-card au d3">
+        <span class="bg-num">02</span>
+        <div class="svc-icon-wrap" style="background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.3);">📣</div>
+        <h3>Social Media Marketing</h3>
+        <p>Instagram, Facebook &amp; LinkedIn growth campaigns built around your audience. We create content, run campaigns, and grow engaged communities that convert followers into loyal customers.</p>
+        <span class="svc-tag" style="color:#a855f7;background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.3);">Audience Building</span>
+      </div>
+
+      <div class="svc-card au d4">
+        <span class="bg-num">03</span>
+        <div class="svc-icon-wrap" style="background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.28);">💰</div>
+        <h3>Paid Advertisements</h3>
+        <p>Run targeted ad campaigns that generate leads with precision. From Google Ads to Meta campaigns, we manage your budget, creative, and targeting to maximise every rupee spent and deliver measurable ROI.</p>
+        <span class="svc-tag" style="color:#00ff88;background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.2);">Lead Generation</span>
+      </div>
+
+      <div class="svc-card au d5">
+        <span class="bg-num">04</span>
+        <div class="svc-icon-wrap" style="background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.28);">🏷️</div>
+        <h3>Branding Strategy</h3>
+        <p>Create a strong digital identity for your business that people recognise, trust, and remember. We craft your brand voice, visual identity, positioning, and messaging so every touchpoint tells a consistent story.</p>
+        <span class="svc-tag" style="color:#ffd700;background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.2);">Brand Identity</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- STRATEGY STEPS -->
+  <section class="strategy-section" id="strategy" style="padding-top:90px;">
+    <p class="sec-label au d1">// How We Work</p>
+    <h2 class="sec-title au d2">Marketing Strategy Process</h2>
+    <p class="sec-sub au d3" style="margin-bottom:0;">A clear, repeatable process that turns your goals into measurable growth — every single time.</p>
+
+    <div class="steps-track au d3">
+
+      <div class="step">
+        <div class="step-arrow"></div>
+        <span class="step-num">Step 01</span>
+        <div class="step-icon">🔎</div>
+        <div class="step-title">Research</div>
+        <p class="step-desc">We deep-dive into your market, competitors, and audience to uncover exactly what your customers are searching for.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-arrow"></div>
+        <span class="step-num">Step 02</span>
+        <div class="step-icon">🗺️</div>
+        <div class="step-title">Plan</div>
+        <p class="step-desc">A data-backed strategy is crafted — channels, content types, timelines, and KPIs are defined before a single post goes live.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-arrow"></div>
+        <span class="step-num">Step 03</span>
+        <div class="step-icon">🚀</div>
+        <div class="step-title">Execute</div>
+        <p class="step-desc">Campaigns and creatives are launched with precision — on-brand, on-schedule, and on-budget.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-arrow"></div>
+        <span class="step-num">Step 04</span>
+        <div class="step-icon">📊</div>
+        <div class="step-title">Analyze</div>
+        <p class="step-desc">Real-time dashboards and reports track every metric — clicks, leads, conversions, and ROI — so nothing is guesswork.</p>
+      </div>
+
+      <div class="step">
+        <span class="step-num">Step 05</span>
+        <div class="step-icon">⚙️</div>
+        <div class="step-title">Optimize</div>
+        <p class="step-desc">We iterate continuously — A/B testing, budget reallocation, and content pivots keep performance climbing.</p>
+      </div>
+
+    </div>
+
+    <div class="steps-progress au d4">
+      <div class="steps-progress-fill"></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer" style="margin-top:80px;">
+    <span class="footer-logo">NN<em> Nexus</em></span>
+    <div class="footer-links">
+    </div>
+    <span class="footer-copy">© 2026 NN Nexus. All rights reserved.</span>
+  </footer>
+
+</div><!-- /page -->
+
+<script>
+(function() {
+  var canvas = document.getElementById('net-canvas'),
+      ctx    = canvas.getContext('2d'),
+      W, H, pts, NUM=70, DIST=140,
+      mouse  = { x:-999, y:-999 };
+
+  function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+
+  function init() {
+    pts = [];
+    for (var i = 0; i < NUM; i++) {
+      pts.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*0.4, vy:(Math.random()-0.5)*0.4 });
+    }
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < pts.length; i++) {
+      for (var j = i+1; j < pts.length; j++) {
+        var dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.hypot(dx,dy);
+        if (d < DIST) {
+          ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.strokeStyle='rgba(0,255,255,'+(1-d/DIST)*0.22+')'; ctx.lineWidth=0.6; ctx.stroke();
+        }
+      }
+      var md=Math.hypot(pts[i].x-mouse.x,pts[i].y-mouse.y);
+      if (md < 175) {
+        ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(mouse.x,mouse.y);
+        ctx.strokeStyle='rgba(0,255,255,'+(1-md/175)*0.45+')'; ctx.lineWidth=0.9; ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(pts[i].x,pts[i].y,1.4,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,255,255,0.65)'; ctx.fill();
+      pts[i].x+=pts[i].vx; pts[i].y+=pts[i].vy;
+      if(pts[i].x<0||pts[i].x>W) pts[i].vx*=-1;
+      if(pts[i].y<0||pts[i].y>H) pts[i].vy*=-1;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize',     function()  { resize(); init(); });
+  addEventListener('mousemove',  function(e) { mouse.x=e.clientX; mouse.y=e.clientY; });
+  addEventListener('mouseleave', function()  { mouse.x=mouse.y=-999; });
+  resize(); init(); frame();
+})();
+</script>
+
+</body>
+</html>

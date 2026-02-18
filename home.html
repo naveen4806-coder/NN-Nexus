@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NN Nexus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   ROOT & RESET
+══════════════════════════════════════════ */
+:root {
+  --cyan       : #00ffff;
+  --cyan-dim   : rgba(0,255,255,0.10);
+  --cyan-glow  : rgba(0,255,255,0.22);
+  --glass      : rgba(6,10,18,0.72);
+  --glass2     : rgba(8,14,22,0.85);
+  --muted      : #a0b4c0;
+  --radius     : 18px;
+  --error      : #ff4d6d;
+  --success    : #00ffaa;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  min-height:100vh;
+  background:#020508;
+  color:#fff;
+  font-family:'Rajdhani',sans-serif;
+  overflow-x:hidden;
+}
+
+/* ══════════════════════════════════════════
+   CANVAS
+══════════════════════════════════════════ */
+#net-canvas {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+}
+
+/* ══════════════════════════════════════════
+   SHARED ANIMATIONS
+══════════════════════════════════════════ */
+@keyframes fadeUp   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+@keyframes pulseDot { 0%,100%{box-shadow:0 0 4px var(--cyan)} 50%{box-shadow:0 0 14px var(--cyan)} }
+@keyframes scanLine {
+  0%   { top:-2px; }
+  100% { top:100%; }
+}
+@keyframes countUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes shimmer {
+  0%   { background-position:-200% center; }
+  100% { background-position:200% center; }
+}
+
+/* ══════════════════════════════════════════
+   AUTH PAGE
+══════════════════════════════════════════ */
+#auth-page {
+  position:relative; z-index:1;
+  min-height:100vh;
+  display:flex; flex-direction:column;
+  justify-content:center; align-items:center;
+  padding:40px 20px;
+}
+
+.auth-brand {
+  text-align:center; margin-bottom:30px;
+}
+.auth-brand h1 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:28px; font-weight:900;
+  color:var(--cyan); letter-spacing:3px;
+}
+.auth-brand h1 em { color:#fff; font-style:normal; }
+.auth-brand p {
+  font-size:11px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--muted); margin-top:6px;
+}
+
+.auth-card {
+  background:var(--glass2);
+  backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--cyan-glow);
+  border-radius:22px;
+  padding:38px 40px;
+  width:100%; max-width:420px;
+  position:relative; overflow:hidden;
+}
+.auth-card::before {
+  content:'';
+  position:absolute; top:0; left:8%; right:8%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,0.55),transparent);
+}
+
+/* Scan line decoration */
+.auth-card::after {
+  content:'';
+  position:absolute; left:0; right:0; height:40px;
+  background:linear-gradient(to bottom,transparent,rgba(0,255,255,0.025),transparent);
+  animation:scanLine 5s linear infinite;
+  pointer-events:none;
+}
+
+/* Tabs */
+.auth-tabs {
+  display:flex; gap:0;
+  border:1px solid var(--cyan-glow); border-radius:10px;
+  overflow:hidden; margin-bottom:28px;
+}
+.auth-tab {
+  flex:1; padding:11px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:1.5px;
+  cursor:pointer; border:none; outline:none;
+  background:transparent; color:var(--muted);
+  transition:all 0.3s;
+}
+.auth-tab.active { background:var(--cyan); color:#000; }
+
+/* Form panels */
+.form-panel { display:none; flex-direction:column; gap:16px; }
+.form-panel.active { display:flex; animation:fadeUp 0.4s ease both; }
+
+.input-group { display:flex; flex-direction:column; gap:6px; }
+.input-group label {
+  font-size:11px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--muted);
+}
+.input-wrap { position:relative; }
+.input-wrap input {
+  width:100%;
+  padding:13px 42px 13px 16px;
+  border-radius:9px;
+  border:1px solid var(--cyan-glow);
+  background:rgba(0,255,255,0.04);
+  color:#fff;
+  font-family:'Rajdhani',sans-serif;
+  font-size:15px; font-weight:500;
+  outline:none;
+  transition:all 0.3s;
+}
+.input-wrap input:focus {
+  border-color:var(--cyan);
+  background:rgba(0,255,255,0.07);
+  box-shadow:0 0 16px rgba(0,255,255,0.18);
+}
+.input-wrap input.err { border-color:var(--error); box-shadow:0 0 10px rgba(255,77,109,0.2); }
+.toggle-pw {
+  position:absolute; right:13px; top:50%; transform:translateY(-50%);
+  cursor:pointer; font-size:16px; color:var(--muted); user-select:none;
+  transition:color 0.2s;
+}
+.toggle-pw:hover { color:var(--cyan); }
+
+.row-space {
+  display:flex; align-items:center;
+  justify-content:space-between; margin-top:-4px;
+}
+.check-label {
+  display:flex; align-items:center; gap:8px;
+  cursor:pointer; font-size:13px; color:var(--muted);
+}
+.check-label input[type="checkbox"] {
+  appearance:none; width:16px; height:16px;
+  border:1px solid var(--cyan-glow); border-radius:4px;
+  background:rgba(0,255,255,0.04); cursor:pointer;
+  position:relative; transition:all 0.2s; flex-shrink:0;
+}
+.check-label input:checked { background:var(--cyan); border-color:var(--cyan); }
+.check-label input:checked::after {
+  content:'✓'; position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%); font-size:11px; color:#000; font-weight:900;
+}
+.forgot { font-size:12px; color:var(--cyan); text-decoration:none; letter-spacing:0.5px; }
+.forgot:hover { opacity:0.7; }
+
+/* Strength bar */
+.bar-wrap { height:3px; border-radius:2px; background:rgba(255,255,255,0.08); margin-top:6px; overflow:hidden; }
+.bar-fill  { height:100%; border-radius:2px; width:0; transition:width 0.4s,background 0.4s; }
+.bar-txt   { font-size:11px; color:var(--muted); margin-top:4px; }
+
+/* Messages */
+.msg {
+  padding:10px 14px; border-radius:8px;
+  font-size:13px; font-weight:600; letter-spacing:0.5px; display:none;
+}
+.msg.show { display:block; }
+.err-msg  { background:rgba(255,77,109,0.1);  border:1px solid rgba(255,77,109,0.3);  color:var(--error); }
+.ok-msg   { background:rgba(0,255,170,0.1);   border:1px solid rgba(0,255,170,0.3);   color:var(--success); }
+
+/* Submit button */
+.btn-submit {
+  width:100%; padding:14px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:2px;
+  color:#000; background:var(--cyan);
+  border:none; border-radius:9px; cursor:pointer;
+  transition:all 0.3s; margin-top:4px;
+}
+.btn-submit:hover {
+  background:#fff;
+  box-shadow:0 0 28px rgba(0,255,255,0.4);
+  transform:translateY(-2px);
+}
+.terms { font-size:12px; color:var(--muted); text-align:center; line-height:1.6; }
+.terms a { color:var(--cyan); text-decoration:none; }
+
+
+/* ══════════════════════════════════════════
+   HOME PAGE — NAVBAR
+══════════════════════════════════════════ */
+#home-page { display:none; position:relative; z-index:1; }
+
+.navbar {
+  position:fixed; top:0; width:100%; height:68px;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0 60px;
+  background:rgba(2,5,8,0.7);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--cyan-glow);
+  z-index:999;
+}
+.nav-logo {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:20px; font-weight:900;
+  color:var(--cyan); letter-spacing:2px; text-decoration:none;
+}
+.nav-logo em { color:#fff; font-style:normal; }
+
+.nav-links { display:flex; gap:36px; }
+.nav-links a {
+  color:var(--muted); text-decoration:none;
+  font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  transition:color 0.3s; position:relative;
+}
+.nav-links a::after {
+  content:''; position:absolute; bottom:-4px; left:0;
+  width:0; height:1px; background:var(--cyan); transition:width 0.3s;
+}
+.nav-links a:hover { color:var(--cyan); }
+.nav-links a:hover::after { width:100%; }
+
+.nav-user { display:flex; align-items:center; gap:14px; }
+.user-chip {
+  display:flex; align-items:center; gap:10px;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  border-radius:40px; padding:5px 14px 5px 6px;
+}
+.user-av {
+  width:30px; height:30px; border-radius:50%;
+  background:linear-gradient(135deg,#00ffff,#0055ff);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:13px; font-weight:900; color:#000;
+  flex-shrink:0;
+}
+.user-nm { font-size:13px; font-weight:600; color:#fff; }
+.btn-out {
+  padding:7px 16px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:1px;
+  color:var(--cyan); background:transparent;
+  border:1px solid var(--cyan-glow); border-radius:7px;
+  cursor:pointer; transition:all 0.3s;
+}
+.btn-out:hover { border-color:var(--cyan); background:var(--cyan-dim); }
+
+/* ══════════════════════════════════════════
+   HERO
+══════════════════════════════════════════ */
+.hero {
+  min-height:100vh;
+  display:grid; grid-template-columns:1fr 1fr;
+  align-items:center;
+  padding:110px 60px 60px;
+  gap:60px;
+}
+
+.hero-left {}
+
+.hero-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  border-radius:40px; padding:6px 16px;
+  font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:24px;
+}
+.badge-dot {
+  width:6px; height:6px; border-radius:50%; background:var(--cyan);
+  animation:pulseDot 1.8s ease-in-out infinite;
+}
+
+.hero-title {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(34px,5vw,66px); font-weight:900;
+  line-height:1.08; margin-bottom:22px;
+}
+.hero-title .line2 { color:var(--cyan); }
+.hero-title .line3 {
+  background:linear-gradient(90deg,#00ffff,#ffffff,#00ffff);
+  background-size:200% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 3.5s linear infinite;
+}
+
+.hero-sub {
+  font-size:17px; color:var(--muted); line-height:1.7;
+  max-width:500px; margin-bottom:36px;
+}
+
+.hero-btns { display:flex; gap:14px; flex-wrap:wrap; }
+.btn-cta {
+  padding:14px 30px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:1.5px;
+  border-radius:9px; cursor:pointer; text-decoration:none;
+  display:inline-block; transition:all 0.3s;
+}
+.btn-cta.solid  { background:var(--cyan); color:#000; border:none; }
+.btn-cta.solid:hover { background:#fff; box-shadow:0 0 30px rgba(0,255,255,0.4); transform:translateY(-2px); }
+.btn-cta.ghost  { color:var(--cyan); background:transparent; border:1px solid var(--cyan-glow); }
+.btn-cta.ghost:hover { border-color:var(--cyan); background:var(--cyan-dim); transform:translateY(-2px); }
+
+/* Animated stats row */
+.hero-stats {
+  display:flex; gap:40px; margin-top:50px; flex-wrap:wrap;
+}
+.stat-block { display:flex; flex-direction:column; gap:4px; }
+.stat-n {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:30px; font-weight:900; color:var(--cyan);
+}
+.stat-l {
+  font-size:11px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--muted);
+}
+
+/* Hero right — glowing feature cards stack */
+.hero-right {
+  display:flex; flex-direction:column; gap:16px;
+  animation:fadeUp 0.9s 0.3s ease both;
+}
+.feat-card {
+  background:var(--glass);
+  border:1px solid var(--cyan-glow); border-radius:14px;
+  padding:20px 24px;
+  display:flex; align-items:center; gap:18px;
+  position:relative; overflow:hidden;
+  transition:transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+  text-decoration:none;
+}
+.feat-card:hover {
+  transform:translateX(6px);
+  border-color:rgba(0,255,255,0.45);
+  box-shadow:0 8px 40px rgba(0,0,0,0.6), -4px 0 20px rgba(0,255,255,0.08);
+}
+.feat-card::before {
+  content:''; position:absolute; left:0; top:15%; bottom:15%;
+  width:2px; background:var(--cyan);
+  border-radius:2px;
+  box-shadow:0 0 8px var(--cyan);
+}
+.feat-icon {
+  font-size:26px; flex-shrink:0;
+  width:50px; height:50px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+}
+.feat-info h4 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:14px; font-weight:700; color:#fff; margin-bottom:4px;
+}
+.feat-info p { font-size:13px; color:var(--muted); line-height:1.5; }
+.feat-arrow {
+  margin-left:auto; font-size:18px; color:var(--cyan);
+  opacity:0.5; flex-shrink:0; transition:opacity 0.3s, transform 0.3s;
+}
+.feat-card:hover .feat-arrow { opacity:1; transform:translateX(4px); }
+
+/* ══════════════════════════════════════════
+   SECTION COMMONS
+══════════════════════════════════════════ */
+.sec-divider {
+  height:1px; margin:0 60px;
+  background:linear-gradient(90deg,transparent,var(--cyan-glow),transparent);
+}
+.section { padding:90px 60px; }
+
+.sec-label {
+  font-size:10px; font-weight:700; letter-spacing:4px;
+  text-transform:uppercase; color:var(--cyan); margin-bottom:10px;
+}
+.sec-title {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(22px,3vw,36px); font-weight:700; color:#fff;
+  margin-bottom:14px;
+}
+.sec-sub {
+  font-size:16px; color:var(--muted); max-width:560px; line-height:1.65;
+}
+
+/* ══════════════════════════════════════════
+   SERVICES SECTION
+══════════════════════════════════════════ */
+.services-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:50px;
+}
+.svc-card {
+  background:var(--glass);
+  border:1px solid var(--cyan-glow); border-radius:var(--radius);
+  padding:30px 28px;
+  display:flex; flex-direction:column; gap:14px;
+  position:relative; overflow:hidden;
+  transition:transform 0.35s, border-color 0.35s, box-shadow 0.35s;
+  cursor:pointer; text-decoration:none;
+}
+.svc-card::before {
+  content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,0.5),transparent);
+}
+.svc-card:hover {
+  transform:translateY(-8px);
+  border-color:rgba(0,255,255,0.45);
+  box-shadow:0 22px 60px rgba(0,0,0,0.8), 0 0 40px rgba(0,255,255,0.1);
+}
+.svc-card .bg-num {
+  position:absolute; right:16px; top:12px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:52px; font-weight:900;
+  color:rgba(0,255,255,0.04); pointer-events:none;
+  user-select:none;
+}
+.svc-ico {
+  width:52px; height:52px;
+  border:1px solid var(--cyan-glow); border-radius:13px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; background:var(--cyan-dim); flex-shrink:0;
+}
+.svc-card h3 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:16px; font-weight:700; color:#fff;
+}
+.svc-card p { font-size:15px; color:var(--muted); line-height:1.6; flex:1; }
+.svc-tag {
+  display:inline-block; font-size:10px; font-weight:700;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--cyan); background:var(--cyan-dim);
+  border:1px solid var(--cyan-glow); border-radius:4px;
+  padding:3px 10px; width:fit-content;
+}
+
+/* ══════════════════════════════════════════
+   WHY CHOOSE US
+══════════════════════════════════════════ */
+.why-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:50px;
+}
+.why-item {
+  background:var(--glass);
+  border:1px solid var(--cyan-glow); border-radius:14px;
+  padding:22px 24px;
+  display:flex; align-items:flex-start; gap:16px;
+  transition:border-color 0.3s, transform 0.3s;
+}
+.why-item:hover {
+  border-color:rgba(0,255,255,0.45);
+  transform:translateY(-4px);
+}
+.why-num {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:22px; font-weight:900; color:var(--cyan);
+  opacity:0.45; flex-shrink:0; line-height:1;
+  margin-top:2px; min-width:30px;
+}
+.why-text h4 {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:14px; font-weight:700; color:#fff; margin-bottom:6px;
+}
+.why-text p { font-size:14px; color:var(--muted); line-height:1.6; }
+
+/* ══════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════ */
+.footer {
+  padding:36px 60px;
+  border-top:1px solid var(--cyan-glow);
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:14px;
+  background:rgba(0,0,0,0.5);
+  backdrop-filter:blur(10px);
+}
+.footer-logo {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:18px; font-weight:900; color:var(--cyan); letter-spacing:2px;
+}
+.footer-logo em { color:#fff; font-style:normal; }
+.footer-links { display:flex; gap:28px; }
+.footer-links a { font-size:13px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+.footer-links a:hover { color:var(--cyan); }
+.footer-copy { font-size:12px; color:var(--muted); }
+
+/* ══════════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════════ */
+::-webkit-scrollbar       { width:5px; }
+::-webkit-scrollbar-track { background:#000; }
+::-webkit-scrollbar-thumb { background:rgba(0,255,255,0.3); border-radius:3px; }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media(max-width:1100px) {
+  .hero { grid-template-columns:1fr; padding-bottom:40px; }
+  .hero-right { display:none; }
+  .services-grid { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:900px) {
+  .why-grid { grid-template-columns:1fr; }
+  .navbar { padding:0 28px; }
+  .hero,.section { padding-left:28px; padding-right:28px; }
+  .sec-divider { margin:0 28px; }
+  .footer { padding:28px; }
+}
+@media(max-width:620px) {
+  .services-grid { grid-template-columns:1fr; }
+  .nav-links { display:none; }
+  .auth-card { padding:30px 22px; }
+  .hero-title { font-size:34px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="net-canvas"></canvas>
+
+<!-- ══════════════════════════════════════════
+     AUTH PAGE
+══════════════════════════════════════════ -->
+<div id="auth-page">
+  <div style="width:100%;max-width:430px;">
+
+    <div class="auth-brand">
+      <h1>NN<em> Nexus</em></h1>
+      <p>The Core Of Tech &amp; Creativity</p>
+    </div>
+
+    <div class="auth-card">
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login"  onclick="switchTab('login')">Login</button>
+        <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="form-panel active" id="panel-login">
+        <div class="input-group">
+          <label>Email</label>
+          <div class="input-wrap">
+            <input type="email" id="l-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="l-pw" placeholder="••••••••" autocomplete="current-password">
+            <span class="toggle-pw" onclick="togglePw('l-pw',this)">👁</span>
+          </div>
+        </div>
+        <div class="row-space">
+          <label class="check-label">
+            <input type="checkbox" id="remember" checked>
+            Remember me
+          </label>
+          <a href="#" class="forgot">Forgot password?</a>
+        </div>
+        <div class="msg err-msg" id="l-err"></div>
+        <button class="btn-submit" onclick="doLogin()">Login →</button>
+      </div>
+
+      <!-- SIGNUP -->
+      <div class="form-panel" id="panel-signup">
+        <div class="input-group">
+          <label>Full Name</label>
+          <div class="input-wrap">
+            <input type="text" id="s-name" placeholder="Your full name" autocomplete="name">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Email</label>
+          <div class="input-wrap">
+            <input type="email" id="s-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="s-pw" placeholder="••••••••" autocomplete="new-password" oninput="pwStrength(this.value)">
+            <span class="toggle-pw" onclick="togglePw('s-pw',this)">👁</span>
+          </div>
+          <div class="bar-wrap"><div class="bar-fill" id="bar"></div></div>
+          <span class="bar-txt" id="bar-txt"></span>
+        </div>
+        <div class="input-group">
+          <label>Confirm Password</label>
+          <div class="input-wrap">
+            <input type="password" id="s-pw2" placeholder="••••••••" autocomplete="new-password">
+            <span class="toggle-pw" onclick="togglePw('s-pw2',this)">👁</span>
+          </div>
+        </div>
+        <div class="msg err-msg" id="s-err"></div>
+        <div class="msg ok-msg"  id="s-ok"></div>
+        <button class="btn-submit" onclick="doSignup()">Create Account →</button>
+        <p class="terms">By signing up you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     HOME PAGE
+══════════════════════════════════════════ -->
+<div id="home-page">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">NN<em> Nexus</em></a>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <button class="btn-out" onclick="window.location.href='bookworkshop.html'">BOOK WORKSHOP</button>
+    <div class="nav-user">
+      <div class="user-chip">
+        <div class="user-av" id="u-av">N</div>
+        <span class="user-nm" id="u-nm">User</span>
+      </div>
+      <button class="btn-out" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-left" style="animation:fadeUp 0.7s ease both;">
+      <h1 class="hero-title">
+        Build Skills.<br>
+        <span class="line2">Launch Careers.</span><br>
+        <span class="line3">Shape The Future.</span>
+      </h1>
+      <p class="hero-sub">
+        NN Nexus bridges the gap between education and industry — delivering real-world training,
+        premium digital services, and expert career guidance for students and businesses alike.
+      </p>
+    </div>
+
+    <div class="hero-right">
+      <a href="workshop.html" class="feat-card">
+        <div class="feat-icon">🎓</div>
+        <div class="feat-info">
+          <h4>Workshop Programs</h4>
+          <p>Industry-recognised certificates with hands-on curriculum.</p>
+        </div>
+        <span class="feat-arrow">→</span>
+      </a>
+      <a href="web.html" class="feat-card">
+        <div class="feat-icon">💻</div>
+        <div class="feat-info">
+          <h4>Web Development</h4>
+          <p>Custom websites and web apps built for performance.</p>
+        </div>
+        <span class="feat-arrow">→</span>
+      </a>
+      <a href="marketing.html" class="feat-card">
+        <div class="feat-icon">📣</div>
+        <div class="feat-info">
+          <h4>Digital Marketing</h4>
+          <p>Data-driven campaigns that grow visibility and conversions.</p>
+        </div>
+        <span class="feat-arrow">→</span>
+      </a>
+      <a href="design.html" class="feat-card">
+        <div class="feat-icon">🎨</div>
+        <div class="feat-info">
+          <h4>Graphic Design</h4>
+          <p>Brand identity, UI assets, and creative design solutions.</p>
+        </div>
+        <span class="feat-arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <div class="sec-divider"></div>
+
+  <!-- ── SERVICES ── -->
+  <section class="section" id="services">
+    <h2 class="sec-title">Our Core Services</h2>
+    <p class="sec-sub">Everything you need to grow — whether you're a student building skills or a business scaling up.</p>
+
+    <div class="services-grid">
+      <a href="web.html" class="svc-card">
+        <span class="bg-num">01</span>
+        <div class="svc-ico">🌐</div>
+        <span class="svc-tag">Development</span>
+        <h3>Website Development</h3>
+        <p>Responsive, fast, and pixel-perfect websites crafted with modern technologies tailored to your brand.</p>
+      </a>
+      <a href="design.html" class="svc-card">
+        <span class="bg-num">02</span>
+        <div class="svc-ico">🎨</div>
+        <span class="svc-tag">Design</span>
+        <h3>Graphic Design</h3>
+        <p>Logos, UI kits, social media assets, and full brand identities that communicate your vision.</p>
+      </a>
+      <a href="marketing.html" class="svc-card">
+        <span class="bg-num">03</span>
+        <div class="svc-ico">📣</div>
+        <span class="svc-tag">Marketing</span>
+        <h3>Digital Marketing</h3>
+        <p>SEO, social campaigns, and paid ads — all data-driven to maximise reach and ROI.</p>
+      </a>
+      <a href="workshop.html" class="svc-card">
+        <span class="bg-num">04</span>
+        <div class="svc-ico">🎓</div>
+        <span class="svc-tag">Education</span>
+        <h3>Workshops &amp; Bootcamps</h3>
+        <p>Intensive live training sessions covering web dev, design, and digital skills for all levels.</p>
+      </a>
+      <a href="workshop.html" class="svc-card">
+        <span class="bg-num">05</span>
+        <div class="svc-ico">📜</div>
+        <span class="svc-tag">Certification</span>
+        <h3>Certification Programs</h3>
+        <p>Recognised certificates that validate your skills and open doors to industry opportunities.</p>
+      </a>
+      <a href="contact.html" class="svc-card">
+        <span class="bg-num">06</span>
+        <div class="svc-ico">🚀</div>
+        <span class="svc-tag">Startup</span>
+        <h3>Startup Support</h3>
+        <p>End-to-end guidance for entrepreneurs — from ideation to digital launch and beyond.</p>
+      </a>
+    </div>
+  </section>
+
+  <div class="sec-divider"></div>
+
+  <!-- ── WHY CHOOSE US ── -->
+  <section class="section" id="about">
+    <h2 class="sec-title">Why Choose NN Nexus?</h2>
+    <p class="sec-sub">We don't just teach or build — we partner with you every step of the way.</p>
+
+    <div class="why-grid">
+      <div class="why-item">
+        <span class="why-num">01</span>
+        <div class="why-text">
+          <h4>Industry-First Curriculum</h4>
+          <p>Every course and workshop is designed in collaboration with working professionals, not just academics.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <span class="why-num">02</span>
+        <div class="why-text">
+          <h4>Hands-On Learning</h4>
+          <p>No passive lectures — you build real projects, review real code, and solve real problems.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <span class="why-num">03</span>
+        <div class="why-text">
+          <h4>Affordable Pricing</h4>
+          <p>Student-friendly fees with flexible payment options — quality education shouldn't break the bank.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <span class="why-num">04</span>
+        <div class="why-text">
+          <h4>Friendly Mentorship</h4>
+          <p>Direct access to mentors who guide you through technical challenges and career decisions.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <span class="why-num">05</span>
+        <div class="why-text">
+          <h4>Recognised Certificates</h4>
+          <p>Earn certificates that are valued by employers and acknowledged across the tech industry.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <span class="why-num">06</span>
+        <div class="why-text">
+          <h4>Business &amp; Startup Support</h4>
+          <p>From brand creation to digital marketing, we help startups hit the ground running.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sec-divider"></div>
+
+  <!-- FOOTER -->
+  <footer class="footer" style="margin-top:80px;">
+    <span class="footer-logo">NN<em> Nexus</em></span>
+    <div class="footer-links">
+    <span class="footer-copy">© 2026 NN Nexus. All rights reserved.</span>
+  </footer>
+
+</div><!-- /home-page -->
+
+
+<script>
+/* ════════════════════════════
+   KEYS
+════════════════════════════ */
+var UK = 'nn_users', SK = 'nn_session';
+
+/* ════════════════════════════
+   STORAGE HELPERS
+════════════════════════════ */
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(UK)) || {}; } catch(e) { return {}; }
+}
+function saveUsers(u)   { localStorage.setItem(UK, JSON.stringify(u)); }
+function getSession()   { try { return JSON.parse(localStorage.getItem(SK)); } catch(e) { return null; } }
+function saveSession(u) { localStorage.setItem(SK, JSON.stringify(u)); }
+function clearSession() { localStorage.removeItem(SK); sessionStorage.removeItem(SK); }
+
+/* ════════════════════════════
+   UI HELPERS
+════════════════════════════ */
+function msg(id, txt) { var e=document.getElementById(id); e.textContent=txt; e.classList.add('show'); }
+function clrMsg(id)   { var e=document.getElementById(id); e.textContent=''; e.classList.remove('show'); }
+function markErr(id)  { document.getElementById(id).classList.add('err'); }
+function clrErrs()    { document.querySelectorAll('input').forEach(function(i){ i.classList.remove('err'); }); }
+
+/* ════════════════════════════
+   SHOW HOME / AUTH
+════════════════════════════ */
+function showHome(user) {
+  document.getElementById('auth-page').style.display = 'none';
+  document.getElementById('home-page').style.display = 'block';
+  var name = user.name || user.email.split('@')[0];
+  var init = name.charAt(0).toUpperCase();
+  document.getElementById('u-av').textContent = init;
+  document.getElementById('u-nm').textContent = name;
+}
+function showAuth() {
+  document.getElementById('home-page').style.display = 'none';
+  document.getElementById('auth-page').style.display = 'flex';
+}
+
+/* ════════════════════════════
+   AUTO-LOGIN
+════════════════════════════ */
+(function() {
+  var s = getSession() || JSON.parse(sessionStorage.getItem(SK) || 'null');
+  if (s && s.email) { showHome(s); }
+})();
+
+/* ════════════════════════════
+   TAB SWITCH
+════════════════════════════ */
+function switchTab(t) {
+  var isL = t === 'login';
+  document.getElementById('tab-login').classList.toggle('active', isL);
+  document.getElementById('tab-signup').classList.toggle('active', !isL);
+  document.getElementById('panel-login').classList.toggle('active', isL);
+  document.getElementById('panel-signup').classList.toggle('active', !isL);
+  clrErrs(); clrMsg('l-err'); clrMsg('s-err'); clrMsg('s-ok');
+}
+
+/* ════════════════════════════
+   LOGIN
+════════════════════════════ */
+function doLogin() {
+  clrErrs(); clrMsg('l-err');
+  var em  = document.getElementById('l-email').value.trim();
+  var pw  = document.getElementById('l-pw').value;
+  var rem = document.getElementById('remember').checked;
+
+  if (!em)   { markErr('l-email');   msg('l-err','⚠ Please enter your email.'); return; }
+  if (!pw)   { markErr('l-pw');      msg('l-err','⚠ Please enter your password.'); return; }
+
+  var users = getUsers();
+  if (!users[em])                      { markErr('l-email'); msg('l-err','⚠ No account found with this email.'); return; }
+  if (users[em].password !== btoa(pw)) { markErr('l-pw');    msg('l-err','⚠ Incorrect password.'); return; }
+
+  var user = { email:em, name:users[em].name };
+  if (rem) { saveSession(user); }
+  else     { sessionStorage.setItem(SK, JSON.stringify(user)); }
+  showHome(user);
+}
+
+/* ════════════════════════════
+   SIGN UP
+════════════════════════════ */
+function doSignup() {
+  clrErrs(); clrMsg('s-err'); clrMsg('s-ok');
+  var nm  = document.getElementById('s-name').value.trim();
+  var em  = document.getElementById('s-email').value.trim();
+  var pw  = document.getElementById('s-pw').value;
+  var pw2 = document.getElementById('s-pw2').value;
+
+  if (!nm)                                            { markErr('s-name');  msg('s-err','⚠ Please enter your full name.'); return; }
+  if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { markErr('s-email'); msg('s-err','⚠ Please enter a valid email.'); return; }
+  if (pw.length < 6)                                  { markErr('s-pw');    msg('s-err','⚠ Password must be at least 6 characters.'); return; }
+  if (pw !== pw2)                                     { markErr('s-pw2');   msg('s-err','⚠ Passwords do not match.'); return; }
+
+  var users = getUsers();
+  if (users[em]) { markErr('s-email'); msg('s-err','⚠ Account already exists with this email.'); return; }
+
+  users[em] = { name:nm, password:btoa(pw) };
+  saveUsers(users);
+
+  var user = { email:em, name:nm };
+  saveSession(user);
+  msg('s-ok','✓ Account created! Signing you in…');
+  setTimeout(function(){ showHome(user); }, 900);
+}
+
+/* ════════════════════════════
+   LOGOUT
+════════════════════════════ */
+function doLogout() {
+  clearSession();
+  document.getElementById('l-email').value = '';
+  document.getElementById('l-pw').value    = '';
+  showAuth();
+}
+
+/* ════════════════════════════
+   TOGGLE PASSWORD
+════════════════════════════ */
+function togglePw(id, icon) {
+  var inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text';     icon.textContent = '🙈'; }
+  else                         { inp.type = 'password'; icon.textContent = '👁'; }
+}
+
+/* ════════════════════════════
+   PASSWORD STRENGTH
+════════════════════════════ */
+function pwStrength(v) {
+  var bar = document.getElementById('bar');
+  var txt = document.getElementById('bar-txt');
+  var sc  = 0;
+  if (v.length >= 6)           sc++;
+  if (v.length >= 10)          sc++;
+  if (/[A-Z]/.test(v))         sc++;
+  if (/[0-9]/.test(v))         sc++;
+  if (/[^A-Za-z0-9]/.test(v)) sc++;
+  var levels = [
+    {p:'0%',   c:'transparent', l:''},
+    {p:'20%',  c:'#ff4d6d',     l:'Very Weak'},
+    {p:'40%',  c:'#ff8800',     l:'Weak'},
+    {p:'65%',  c:'#ffcc00',     l:'Fair'},
+    {p:'85%',  c:'#66FCF1',     l:'Strong'},
+    {p:'100%', c:'#00ffaa',     l:'Very Strong'}
+  ];
+  var lv = levels[Math.min(sc,5)];
+  bar.style.width      = v.length ? lv.p : '0%';
+  bar.style.background = lv.c;
+  txt.textContent      = v.length ? lv.l : '';
+  txt.style.color      = lv.c;
+}
+
+/* ════════════════════════════
+   ENTER KEY
+════════════════════════════ */
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  if (document.getElementById('panel-login').classList.contains('active')) doLogin();
+  else doSignup();
+});
+
+/* ════════════════════════════
+   NETWORK CANVAS
+════════════════════════════ */
+(function() {
+  var canvas = document.getElementById('net-canvas'),
+      ctx    = canvas.getContext('2d'),
+      W, H, pts,
+      NUM    = 75,
+      DIST   = 145,
+      mouse  = { x:-999, y:-999 };
+
+  function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+
+  function init() {
+    pts = [];
+    for (var i = 0; i < NUM; i++) {
+      pts.push({
+        x : Math.random() * W,
+        y : Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4
+      });
+    }
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < pts.length; i++) {
+      for (var j = i+1; j < pts.length; j++) {
+        var dx = pts[i].x - pts[j].x,
+            dy = pts[i].y - pts[j].y,
+            d  = Math.hypot(dx, dy);
+        if (d < DIST) {
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.strokeStyle = 'rgba(0,255,255,' + (1 - d/DIST) * 0.25 + ')';
+          ctx.lineWidth   = 0.6;
+          ctx.stroke();
+        }
+      }
+      var md = Math.hypot(pts[i].x - mouse.x, pts[i].y - mouse.y);
+      if (md < 180) {
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x, pts[i].y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.strokeStyle = 'rgba(0,255,255,' + (1 - md/180) * 0.5 + ')';
+        ctx.lineWidth   = 0.9;
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(pts[i].x, pts[i].y, 1.4, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(0,255,255,0.7)';
+      ctx.fill();
+      pts[i].x += pts[i].vx; pts[i].y += pts[i].vy;
+      if (pts[i].x < 0 || pts[i].x > W) pts[i].vx *= -1;
+      if (pts[i].y < 0 || pts[i].y > H) pts[i].vy *= -1;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize',     function ()  { resize(); init(); });
+  addEventListener('mousemove',  function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+  addEventListener('mouseleave', function ()  { mouse.x = mouse.y = -999; });
+  resize(); init(); frame();
+})();
+</script>
+
+</body>
+</html>
