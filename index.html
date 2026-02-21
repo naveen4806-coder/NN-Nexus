@@ -81,6 +81,7 @@
       -webkit-backdrop-filter: blur(18px);
       border-bottom: 1px solid var(--cyan-border);
       z-index: 999;
+      gap: 16px;
     }
 
     .navbar-logo {
@@ -90,6 +91,7 @@
       color: var(--cyan);
       letter-spacing: 2px;
       text-decoration: none;
+      flex-shrink: 0;
     }
 
     .navbar-logo span {
@@ -126,6 +128,55 @@
 
     .navbar-links a:hover            { color: var(--cyan); }
     .navbar-links a:hover::after     { width: 100%; }
+
+    /* ── NAVBAR BUTTONS ── */
+    .navbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn-out {
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 7px;
+      padding: 9px 18px;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+
+    /* Portfolio — outline style */
+    .btn-out:first-child {
+      color: var(--cyan);
+      background: transparent;
+      border: 1px solid var(--cyan-border);
+    }
+
+    .btn-out:first-child:hover {
+      border-color: var(--cyan);
+      background: var(--cyan-dim);
+      box-shadow: 0 0 16px rgba(0, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+
+    /* Create Website — filled style */
+    .btn-out:last-child {
+      color: #000;
+      background: var(--cyan);
+      border: 1px solid var(--cyan);
+    }
+
+    .btn-out:last-child:hover {
+      background: #fff;
+      border-color: #fff;
+      box-shadow: 0 0 24px rgba(0, 255, 255, 0.45);
+      transform: translateY(-2px);
+    }
 
     /* ── PAGE ── */
     .page {
@@ -546,16 +597,18 @@
       .navbar, .hero, .cards-section         { padding-left: 28px; padding-right: 28px; }
       .divider                               { margin: 0 28px; }
       .site-footer                           { padding: 28px; }
+      .btn-out                               { font-size: 9px; padding: 8px 12px; }
     }
 
     @media (max-width: 620px) {
       .card-grid    { grid-template-columns: 1fr; }
       .card-wide    { grid-column: span 1; }
-      .navbar       { padding: 0 18px; }
+      .navbar       { padding: 0 14px; gap: 8px; }
       .navbar-links { gap: 18px; }
       .hero         { padding: 100px 18px 50px; }
       .cards-section { padding: 60px 18px; }
       .stats-row    { gap: 28px; }
+      .btn-out      { font-size: 8px; padding: 7px 10px; letter-spacing: 0.5px; }
     }
   </style>
 </head>
@@ -566,15 +619,15 @@
   <!-- NAVBAR -->
   <nav class="navbar">
     <a href="#" class="navbar-logo">NN<span> Nexus</span></a>
-    <div class="navbar-links">
+    <div class="navbar-links"></div>
+    <div class="navbar-actions">
+      <button class="btn-out" onclick="window.open('https://nn-nexus-portfolio.vercel.app/', '_blank')">
+        Portfolio
+      </button>
+      <button class="btn-out" onclick="window.open('https://webbitzwebsitemaker.vercel.app/', '_blank')">
+        Create Your Website With Us
+      </button>
     </div>
-     <button class="btn-out" onclick="window.open('https://nn-nexus-portfolio.vercel.app/', '_blank')">
-    Portfolio
-</button>
-    <button class="btn-out" onclick="window.location.href='bookworkshop.html'">BOOK WORKSHOP</button>
-     <button class="btn-out" onclick="window.open('https://webbitzwebsitemaker.vercel.app/', '_blank')">
-  Create Your Website With Us
-</button>
   </nav>
 
   <div class="page">
@@ -672,11 +725,13 @@
         </div>
       </div>
     </section>
+
     <footer class="site-footer">
       <span class="footer-brand">NN Nexus</span>
       <span class="footer-copy">© 2026 NN Nexus. All rights reserved.</span>
     </footer>
   </div>
+
   <!-- NETWORK CANVAS -->
   <script>
     (function () {
@@ -747,8 +802,4 @@
   </script>
 
 </body>
-
 </html>
-
-
-
