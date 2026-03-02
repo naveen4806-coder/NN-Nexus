@@ -2,15 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <head>
   <title>Website Development and Tech Service Company in Coimbatore | NN Nexus</title>
-
   <meta name="description" content="NN Nexus provides website development, e-commerce solutions, tech workshops and internships in Coimbatore.">
-
   <meta name="keywords" content="Website Development Coimbatore, Web Design Tamil Nadu, Internship Web Development">
-
   <meta name="author" content="NN Nexus">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -100,8 +95,6 @@ body {
   position:absolute; top:0; left:8%; right:8%; height:1px;
   background:linear-gradient(90deg,transparent,rgba(0,255,255,0.55),transparent);
 }
-
-/* Scan line decoration */
 .auth-card::after {
   content:'';
   position:absolute; left:0; right:0; height:40px;
@@ -285,8 +278,6 @@ body {
   gap:60px;
 }
 
-.hero-left {}
-
 .hero-badge {
   display:inline-flex; align-items:center; gap:8px;
   background:var(--cyan-dim); border:1px solid var(--cyan-glow);
@@ -331,7 +322,6 @@ body {
 .btn-cta.ghost  { color:var(--cyan); background:transparent; border:1px solid var(--cyan-glow); }
 .btn-cta.ghost:hover { border-color:var(--cyan); background:var(--cyan-dim); transform:translateY(-2px); }
 
-/* Animated stats row */
 .hero-stats {
   display:flex; gap:40px; margin-top:50px; flex-wrap:wrap;
 }
@@ -345,7 +335,6 @@ body {
   text-transform:uppercase; color:var(--muted);
 }
 
-/* Hero right — glowing feature cards stack */
 .hero-right {
   display:flex; flex-direction:column; gap:16px;
   animation:fadeUp 0.9s 0.3s ease both;
@@ -640,13 +629,9 @@ body {
       <a href="#about">About</a>
       <a href="contact.html">Contact</a>
     </div>
-     <button class="btn-out" onclick="window.open('https://nn-nexus-portfolio.vercel.app/', '_blank')">
-    Portfolio
-</button>
+    <button class="btn-out" onclick="window.open('https://nn-nexus-portfolio.vercel.app/', '_blank')">Portfolio</button>
     <button class="btn-out" onclick="window.location.href='bookworkshop.html'">BOOK WORKSHOP</button>
-     <button class="btn-out" onclick="window.open('https://webbitzwebsitemaker.vercel.app/', '_blank')">
-  Create Your Website With Us
-</button>
+    <button class="btn-out" onclick="window.open('https://webbitzwebsitemaker.vercel.app/', '_blank')">Create Your Website With Us</button>
     <div class="nav-user">
       <div class="user-chip">
         <div class="user-av" id="u-av">N</div>
@@ -817,130 +802,190 @@ body {
   <!-- FOOTER -->
   <footer class="footer" style="margin-top:80px;">
     <span class="footer-logo">NN<em> Nexus</em></span>
-    <div class="footer-links">
     <span class="footer-copy">© 2026 NN Nexus. All rights reserved.</span>
   </footer>
 
 </div><!-- /home-page -->
 
 
+<!-- ══════════════════════════════════════════
+     FIREBASE — must load first (module)
+══════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBtRYi60g2dgPgSU628WBdtyuTk7DliV14",
+    authDomain:        "nn-nexus.firebaseapp.com",
+    projectId:         "nn-nexus",
+    storageBucket:     "nn-nexus.firebasestorage.app",
+    messagingSenderId: "582662770842",
+    appId:             "1:582662770842:web:6803b8988d502185904f23",
+    measurementId:     "G-B746MZL43Z"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  /* ── Expose to global scope so non-module script can call them ── */
+  window._fbAuth = auth;
+  window._fbDb   = db;
+  window._fbCreateUser  = createUserWithEmailAndPassword;
+  window._fbSignIn      = signInWithEmailAndPassword;
+  window._fbSignOut     = signOut;
+  window._fbSetDoc      = setDoc;
+  window._fbGetDoc      = getDoc;
+  window._fbDoc         = doc;
+
+  /* ── Restore session on page load via Firebase's own persistence ── */
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      /* User is already signed in — fetch their name from Firestore */
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const name = snap.exists() ? snap.data().name : user.email.split('@')[0];
+        window._showHome({ name, email: user.email });
+      } catch {
+        window._showHome({ name: user.email.split('@')[0], email: user.email });
+      }
+    }
+    /* If no user, auth page is already visible by default — nothing to do */
+  });
+</script>
+
+
+<!-- ══════════════════════════════════════════
+     APP LOGIC  (non-module, runs after above)
+══════════════════════════════════════════ -->
 <script>
-/* ════════════════════════════
-   KEYS
-════════════════════════════ */
-var UK = 'nn_users', SK = 'nn_session';
-
-/* ════════════════════════════
-   STORAGE HELPERS
-════════════════════════════ */
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem(UK)) || {}; } catch(e) { return {}; }
-}
-function saveUsers(u)   { localStorage.setItem(UK, JSON.stringify(u)); }
-function getSession()   { try { return JSON.parse(localStorage.getItem(SK)); } catch(e) { return null; } }
-function saveSession(u) { localStorage.setItem(SK, JSON.stringify(u)); }
-function clearSession() { localStorage.removeItem(SK); sessionStorage.removeItem(SK); }
-
 /* ════════════════════════════
    UI HELPERS
 ════════════════════════════ */
-function msg(id, txt) { var e=document.getElementById(id); e.textContent=txt; e.classList.add('show'); }
-function clrMsg(id)   { var e=document.getElementById(id); e.textContent=''; e.classList.remove('show'); }
-function markErr(id)  { document.getElementById(id).classList.add('err'); }
-function clrErrs()    { document.querySelectorAll('input').forEach(function(i){ i.classList.remove('err'); }); }
+function msg(id, txt)  { var e = document.getElementById(id); e.textContent = txt; e.classList.add('show'); }
+function clrMsg(id)    { var e = document.getElementById(id); e.textContent = '';  e.classList.remove('show'); }
+function markErr(id)   { document.getElementById(id).classList.add('err'); }
+function clrErrs()     { document.querySelectorAll('input').forEach(function(i){ i.classList.remove('err'); }); }
 
 /* ════════════════════════════
    SHOW HOME / AUTH
 ════════════════════════════ */
 function showHome(user) {
-  document.getElementById('auth-page').style.display = 'none';
-  document.getElementById('home-page').style.display = 'block';
+  document.getElementById('auth-page').style.display  = 'none';
+  document.getElementById('home-page').style.display  = 'block';
   var name = user.name || user.email.split('@')[0];
-  var init = name.charAt(0).toUpperCase();
-  document.getElementById('u-av').textContent = init;
+  document.getElementById('u-av').textContent = name.charAt(0).toUpperCase();
   document.getElementById('u-nm').textContent = name;
 }
+/* Expose so the module script can call it */
+window._showHome = showHome;
+
 function showAuth() {
   document.getElementById('home-page').style.display = 'none';
   document.getElementById('auth-page').style.display = 'flex';
+  document.getElementById('l-email').value = '';
+  document.getElementById('l-pw').value    = '';
 }
-
-/* ════════════════════════════
-   AUTO-LOGIN
-════════════════════════════ */
-(function() {
-  var s = getSession() || JSON.parse(sessionStorage.getItem(SK) || 'null');
-  if (s && s.email) { showHome(s); }
-})();
 
 /* ════════════════════════════
    TAB SWITCH
 ════════════════════════════ */
 function switchTab(t) {
   var isL = t === 'login';
-  document.getElementById('tab-login').classList.toggle('active', isL);
+  document.getElementById('tab-login').classList.toggle('active',  isL);
   document.getElementById('tab-signup').classList.toggle('active', !isL);
-  document.getElementById('panel-login').classList.toggle('active', isL);
+  document.getElementById('panel-login').classList.toggle('active',  isL);
   document.getElementById('panel-signup').classList.toggle('active', !isL);
   clrErrs(); clrMsg('l-err'); clrMsg('s-err'); clrMsg('s-ok');
 }
 
 /* ════════════════════════════
-   LOGIN
+   LOGIN  (Firebase)
 ════════════════════════════ */
-function doLogin() {
+async function doLogin() {
   clrErrs(); clrMsg('l-err');
-  var em  = document.getElementById('l-email').value.trim();
-  var pw  = document.getElementById('l-pw').value;
-  var rem = document.getElementById('remember').checked;
+  var em = document.getElementById('l-email').value.trim();
+  var pw = document.getElementById('l-pw').value;
 
-  if (!em)   { markErr('l-email');   msg('l-err','⚠ Please enter your email.'); return; }
-  if (!pw)   { markErr('l-pw');      msg('l-err','⚠ Please enter your password.'); return; }
+  if (!em) { markErr('l-email'); msg('l-err','⚠ Please enter your email.');    return; }
+  if (!pw) { markErr('l-pw');    msg('l-err','⚠ Please enter your password.'); return; }
 
-  var users = getUsers();
-  if (!users[em])                      { markErr('l-email'); msg('l-err','⚠ No account found with this email.'); return; }
-  if (users[em].password !== btoa(pw)) { markErr('l-pw');    msg('l-err','⚠ Incorrect password.'); return; }
+  /* Disable button while request is in-flight */
+  var btn = document.querySelector('#panel-login .btn-submit');
+  btn.disabled = true; btn.textContent = 'Signing in…';
 
-  var user = { email:em, name:users[em].name };
-  if (rem) { saveSession(user); }
-  else     { sessionStorage.setItem(SK, JSON.stringify(user)); }
-  showHome(user);
+  try {
+    var cred = await window._fbSignIn(window._fbAuth, em, pw);
+    var snap = await window._fbGetDoc(window._fbDoc(window._fbDb, "users", cred.user.uid));
+    var name = snap.exists() ? snap.data().name : em.split('@')[0];
+    showHome({ name: name, email: em });
+  } catch (err) {
+    /* Map Firebase error codes to friendly messages */
+    var friendly = {
+      'auth/user-not-found'   : '⚠ No account found with this email.',
+      'auth/wrong-password'   : '⚠ Incorrect password.',
+      'auth/invalid-email'    : '⚠ Please enter a valid email address.',
+      'auth/invalid-credential': '⚠ Email or password is incorrect.',
+      'auth/too-many-requests': '⚠ Too many attempts. Please try again later.'
+    };
+    markErr('l-email'); markErr('l-pw');
+    msg('l-err', friendly[err.code] || '⚠ ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Login →';
+  }
 }
 
 /* ════════════════════════════
-   SIGN UP
+   SIGN UP  (Firebase)
 ════════════════════════════ */
-function doSignup() {
+async function doSignup() {
   clrErrs(); clrMsg('s-err'); clrMsg('s-ok');
   var nm  = document.getElementById('s-name').value.trim();
   var em  = document.getElementById('s-email').value.trim();
   var pw  = document.getElementById('s-pw').value;
   var pw2 = document.getElementById('s-pw2').value;
 
-  if (!nm)                                            { markErr('s-name');  msg('s-err','⚠ Please enter your full name.'); return; }
-  if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { markErr('s-email'); msg('s-err','⚠ Please enter a valid email.'); return; }
-  if (pw.length < 6)                                  { markErr('s-pw');    msg('s-err','⚠ Password must be at least 6 characters.'); return; }
-  if (pw !== pw2)                                     { markErr('s-pw2');   msg('s-err','⚠ Passwords do not match.'); return; }
+  if (!nm)                                             { markErr('s-name');  msg('s-err','⚠ Please enter your full name.');     return; }
+  if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em))  { markErr('s-email'); msg('s-err','⚠ Please enter a valid email.');      return; }
+  if (pw.length < 6)                                   { markErr('s-pw');    msg('s-err','⚠ Password must be at least 6 characters.'); return; }
+  if (pw !== pw2)                                      { markErr('s-pw2');   msg('s-err','⚠ Passwords do not match.');          return; }
 
-  var users = getUsers();
-  if (users[em]) { markErr('s-email'); msg('s-err','⚠ Account already exists with this email.'); return; }
+  var btn = document.querySelector('#panel-signup .btn-submit');
+  btn.disabled = true; btn.textContent = 'Creating account…';
 
-  users[em] = { name:nm, password:btoa(pw) };
-  saveUsers(users);
-
-  var user = { email:em, name:nm };
-  saveSession(user);
-  msg('s-ok','✓ Account created! Signing you in…');
-  setTimeout(function(){ showHome(user); }, 900);
+  try {
+    var cred = await window._fbCreateUser(window._fbAuth, em, pw);
+    /* Save display name to Firestore */
+    await window._fbSetDoc(window._fbDoc(window._fbDb, "users", cred.user.uid), {
+      name      : nm,
+      email     : em,
+      createdAt : new Date()
+    });
+    msg('s-ok','✓ Account created! Signing you in…');
+    setTimeout(function(){ showHome({ name: nm, email: em }); }, 900);
+  } catch (err) {
+    var friendly = {
+      'auth/email-already-in-use': '⚠ An account already exists with this email.',
+      'auth/invalid-email'       : '⚠ Please enter a valid email address.',
+      'auth/weak-password'       : '⚠ Password is too weak (min 6 characters).'
+    };
+    markErr('s-email');
+    msg('s-err', friendly[err.code] || '⚠ ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Account →';
+  }
 }
 
 /* ════════════════════════════
-   LOGOUT
+   LOGOUT  (Firebase)
 ════════════════════════════ */
-function doLogout() {
-  clearSession();
-  document.getElementById('l-email').value = '';
-  document.getElementById('l-pw').value    = '';
+async function doLogout() {
+  try { await window._fbSignOut(window._fbAuth); } catch(e) {}
   showAuth();
 }
 
@@ -960,20 +1005,20 @@ function pwStrength(v) {
   var bar = document.getElementById('bar');
   var txt = document.getElementById('bar-txt');
   var sc  = 0;
-  if (v.length >= 6)           sc++;
-  if (v.length >= 10)          sc++;
-  if (/[A-Z]/.test(v))         sc++;
-  if (/[0-9]/.test(v))         sc++;
-  if (/[^A-Za-z0-9]/.test(v)) sc++;
+  if (v.length >= 6)            sc++;
+  if (v.length >= 10)           sc++;
+  if (/[A-Z]/.test(v))          sc++;
+  if (/[0-9]/.test(v))          sc++;
+  if (/[^A-Za-z0-9]/.test(v))  sc++;
   var levels = [
-    {p:'0%',   c:'transparent', l:''},
-    {p:'20%',  c:'#ff4d6d',     l:'Very Weak'},
-    {p:'40%',  c:'#ff8800',     l:'Weak'},
-    {p:'65%',  c:'#ffcc00',     l:'Fair'},
-    {p:'85%',  c:'#66FCF1',     l:'Strong'},
-    {p:'100%', c:'#00ffaa',     l:'Very Strong'}
+    { p:'0%',   c:'transparent', l:'' },
+    { p:'20%',  c:'#ff4d6d',     l:'Very Weak' },
+    { p:'40%',  c:'#ff8800',     l:'Weak' },
+    { p:'65%',  c:'#ffcc00',     l:'Fair' },
+    { p:'85%',  c:'#66FCF1',     l:'Strong' },
+    { p:'100%', c:'#00ffaa',     l:'Very Strong' }
   ];
-  var lv = levels[Math.min(sc,5)];
+  var lv = levels[Math.min(sc, 5)];
   bar.style.width      = v.length ? lv.p : '0%';
   bar.style.background = lv.c;
   txt.textContent      = v.length ? lv.l : '';
@@ -985,8 +1030,8 @@ function pwStrength(v) {
 ════════════════════════════ */
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Enter') return;
-  if (document.getElementById('panel-login').classList.contains('active')) doLogin();
-  else doSignup();
+  if (document.getElementById('panel-login').classList.contains('active'))  doLogin();
+  else                                                                       doSignup();
 });
 
 /* ════════════════════════════
@@ -1017,7 +1062,7 @@ document.addEventListener('keydown', function(e) {
   function frame() {
     ctx.clearRect(0, 0, W, H);
     for (var i = 0; i < pts.length; i++) {
-      for (var j = i+1; j < pts.length; j++) {
+      for (var j = i + 1; j < pts.length; j++) {
         var dx = pts[i].x - pts[j].x,
             dy = pts[i].y - pts[j].y,
             d  = Math.hypot(dx, dy);
@@ -1025,7 +1070,7 @@ document.addEventListener('keydown', function(e) {
           ctx.beginPath();
           ctx.moveTo(pts[i].x, pts[i].y);
           ctx.lineTo(pts[j].x, pts[j].y);
-          ctx.strokeStyle = 'rgba(0,255,255,' + (1 - d/DIST) * 0.25 + ')';
+          ctx.strokeStyle = 'rgba(0,255,255,' + (1 - d / DIST) * 0.25 + ')';
           ctx.lineWidth   = 0.6;
           ctx.stroke();
         }
@@ -1035,12 +1080,12 @@ document.addEventListener('keydown', function(e) {
         ctx.beginPath();
         ctx.moveTo(pts[i].x, pts[i].y);
         ctx.lineTo(mouse.x, mouse.y);
-        ctx.strokeStyle = 'rgba(0,255,255,' + (1 - md/180) * 0.5 + ')';
+        ctx.strokeStyle = 'rgba(0,255,255,' + (1 - md / 180) * 0.5 + ')';
         ctx.lineWidth   = 0.9;
         ctx.stroke();
       }
       ctx.beginPath();
-      ctx.arc(pts[i].x, pts[i].y, 1.4, 0, Math.PI*2);
+      ctx.arc(pts[i].x, pts[i].y, 1.4, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,255,255,0.7)';
       ctx.fill();
       pts[i].x += pts[i].vx; pts[i].y += pts[i].vy;
@@ -1050,19 +1095,12 @@ document.addEventListener('keydown', function(e) {
     requestAnimationFrame(frame);
   }
 
-  addEventListener('resize',     function ()  { resize(); init(); });
-  addEventListener('mousemove',  function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
-  addEventListener('mouseleave', function ()  { mouse.x = mouse.y = -999; });
+  addEventListener('resize',     function()  { resize(); init(); });
+  addEventListener('mousemove',  function(e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+  addEventListener('mouseleave', function()  { mouse.x = mouse.y = -999; });
   resize(); init(); frame();
 })();
 </script>
 
 </body>
-
 </html>
-
-
-
-
-
-
