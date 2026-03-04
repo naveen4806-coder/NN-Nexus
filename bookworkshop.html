@@ -66,19 +66,87 @@ body{min-height:100vh;background:#020508;color:#fff;font-family:'Rajdhani',sans-
 .form-msg.show{display:block;}
 .form-msg.err{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);color:var(--error);}
 .form-msg.ok{background:rgba(0,255,170,0.1);border:1px solid rgba(0,255,170,0.3);color:var(--success);}
-.btn-submit{width:100%;padding:16px;font-family:'Orbitron',monospace,sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;color:#000;background:var(--cyan);border:none;border-radius:10px;cursor:pointer;transition:all 0.3s;margin-top:6px;position:relative;overflow:hidden;}
+
+/* ── Payment button ── */
+.btn-submit {
+  width: 100%;
+  padding: 16px;
+  font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #000;
+  background: var(--cyan);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 6px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
 .btn-submit::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transform:translateX(-100%);transition:transform 0.5s;}
 .btn-submit:hover::before{transform:translateX(100%);}
 .btn-submit:hover{background:#fff;box-shadow:0 0 32px rgba(0,255,255,0.45);transform:translateY(-2px);}
 .btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none !important;}
+
+.pay-icon {
+  width: 20px; height: 20px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+}
+
+.payment-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: rgba(160,180,192,0.6);
+  letter-spacing: 0.5px;
+}
+
+.payment-note svg { opacity: 0.5; }
+
+/* ── Success overlay ── */
 .success-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(2,5,8,0.92);backdrop-filter:blur(16px);justify-content:center;align-items:center;flex-direction:column;gap:20px;text-align:center;padding:40px;}
 .success-overlay.show{display:flex;}
 .success-icon{width:90px;height:90px;border-radius:50%;background:rgba(0,255,170,0.1);border:2px solid var(--success);display:flex;align-items:center;justify-content:center;font-size:40px;animation:checkPop 0.5s 0.1s ease both;}
 .success-overlay h2{font-family:'Orbitron',monospace,sans-serif;font-size:clamp(20px,3vw,28px);font-weight:900;color:#fff;}
-.success-overlay p{font-size:16px;color:var(--muted);max-width:420px;line-height:1.7;}
+.success-overlay p{font-size:16px;color:var(--muted);max-width:460px;line-height:1.7;}
 .success-overlay .s-name{color:var(--cyan);font-weight:700;}
-.btn-back-home{margin-top:10px;padding:14px 32px;font-family:'Orbitron',monospace,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:#000;background:var(--cyan);border:none;border-radius:9px;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.3s;}
-.btn-back-home:hover{background:#fff;transform:translateY(-2px);}
+
+.btn-pay-now {
+  margin-top: 10px;
+  padding: 16px 40px;
+  font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #000;
+  background: var(--cyan);
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  box-shadow: 0 0 24px rgba(0,255,255,0.3);
+}
+.btn-pay-now:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,255,255,0.5); }
+
+.btn-back-home{margin-top:4px;padding:12px 28px;font-family:'Orbitron',monospace,sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);background:transparent;border:1px solid var(--cyan-glow);border-radius:9px;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.3s;}
+.btn-back-home:hover{color:var(--cyan);border-color:var(--cyan);}
+
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:#000;}
 ::-webkit-scrollbar-thumb{background:rgba(0,255,255,0.3);border-radius:3px;}
@@ -105,10 +173,11 @@ body{min-height:100vh;background:#020508;color:#fff;font-family:'Rajdhani',sans-
       <div class="ws-item"><div class="ws-item-icon">🐍</div><div class="ws-item-info"><h4>Startup Support</h4><p>Business Planning · Pitch Deck · Funding</p></div><span class="ws-arrow">›</span></div>
     </div>
   </div>
+
   <div class="right-panel">
     <div class="form-header">
       <h2>Registration Form</h2>
-      <p>All fields are required. We'll reach out to your email to confirm.</p>
+      <p>All fields are required. Complete your booking by paying the registration fee.</p>
     </div>
     <div class="form-card">
       <div class="field-row">
@@ -151,16 +220,31 @@ body{min-height:100vh;background:#020508;color:#fff;font-family:'Rajdhani',sans-
         <div class="field"><label>Mobile Number</label><input type="tel" id="f-mobile" placeholder="e.g. +91 98765 43210"></div>
       </div>
       <div class="form-msg err" id="form-err"></div>
-      <div class="form-msg ok" id="form-ok"></div>
-      <button class="btn-submit" id="submit-btn" onclick="submitBooking()">CONFIRM BOOKING →</button>
+      <div class="form-msg ok"  id="form-ok"></div>
+
+      <button class="btn-submit" id="submit-btn" onclick="submitBooking()">
+        <span class="pay-icon">₹</span>
+        PROCEED TO PAYMENT →
+      </button>
+      <div class="payment-note">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect x="1" y="4" width="10" height="7" rx="1.5" stroke="#a0b4c0" stroke-width="1.2"/>
+          <path d="M4 4V3a2 2 0 114 0v1" stroke="#a0b4c0" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        Secured by Razorpay · Your details are saved before payment
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Success overlay — shown after Firebase save, before payment redirect -->
 <div class="success-overlay" id="success-overlay">
   <div class="success-icon">✓</div>
-  <h2>Booking Confirmed!</h2>
-  <p>Thank you, <span class="s-name" id="s-name-display">Student</span>! Your registration for <span class="s-name" id="s-ws-display">the workshop</span> has been received. We'll send a confirmation to your email shortly.</p>
+  <h2>Details Saved!</h2>
+  <p>Great, <span class="s-name" id="s-name-display">Student</span>! Your registration for <span class="s-name" id="s-ws-display">the workshop</span> has been recorded. Complete your booking by paying the registration fee below.</p>
+  <a href="https://rzp.io/rzp/MBU4xvY" class="btn-pay-now" target="_blank" rel="noopener">
+    ₹ &nbsp;PAY & CONFIRM SEAT →
+  </a>
   <a href="home.html" class="btn-back-home">← Back to Home</a>
 </div>
 
@@ -182,10 +266,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// ── CHIP SELECTION ──
 var selectedWorkshop = '';
+
 window.selectChip = function(el) {
-  document.querySelectorAll('.ws-chip').forEach(function(c){ c.classList.remove('selected'); });
+  document.querySelectorAll('.ws-chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   selectedWorkshop = el.getAttribute('data-value');
 };
@@ -193,18 +277,18 @@ window.selectChip = function(el) {
 function showMsg(id, txt){ var e=document.getElementById(id); e.textContent=txt; e.classList.add('show'); }
 function hideMsg(id){ var e=document.getElementById(id); e.textContent=''; e.classList.remove('show'); }
 function markErr(id){ document.getElementById(id).classList.add('err'); }
-function clearErrs(){ ['f-name','f-email','f-college','f-year','f-dept'].forEach(function(id){ document.getElementById(id).classList.remove('err'); }); }
+function clearErrs(){ ['f-name','f-email','f-college','f-year','f-dept'].forEach(id => document.getElementById(id).classList.remove('err')); }
 
 window.submitBooking = async function() {
   clearErrs(); hideMsg('form-err'); hideMsg('form-ok');
 
-  var name    = document.getElementById('f-name').value.trim();
-  var email   = document.getElementById('f-email').value.trim();
-  var college = document.getElementById('f-college').value.trim();
-  var year    = document.getElementById('f-year').value;
-  var dept    = document.getElementById('f-dept').value;
-  var mobile  = document.getElementById('f-mobile').value.trim();
-  var ws      = selectedWorkshop;
+  const name    = document.getElementById('f-name').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const college = document.getElementById('f-college').value.trim();
+  const year    = document.getElementById('f-year').value;
+  const dept    = document.getElementById('f-dept').value;
+  const mobile  = document.getElementById('f-mobile').value.trim();
+  const ws      = selectedWorkshop;
 
   if (!name)   { markErr('f-name');    showMsg('form-err','⚠ Please enter your full name.'); return; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { markErr('f-email'); showMsg('form-err','⚠ Please enter a valid email address.'); return; }
@@ -214,40 +298,37 @@ window.submitBooking = async function() {
   if (!mobile) { showMsg('form-err','⚠ Please enter your mobile number.'); return; }
   if (!ws)     { showMsg('form-err','⚠ Please select a workshop to book.'); return; }
 
-  var btn = document.getElementById('submit-btn');
+  const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.textContent = 'SAVING…';
+  btn.innerHTML = '<span style="font-size:14px;">⏳</span> SAVING DETAILS…';
 
   try {
     await addDoc(collection(db, 'bookings'), {
-      name:       name,
-      email:      email,
-      college:    college,
-      year:       year,
+      name, email, college, year,
       department: dept,
-      mobile:     mobile,
-      workshop:   ws,
+      mobile, workshop: ws,
       submittedAt: serverTimestamp()
     });
 
+    // Show success overlay with payment button
     document.getElementById('s-name-display').textContent = name;
     document.getElementById('s-ws-display').textContent   = ws;
     document.getElementById('success-overlay').classList.add('show');
 
-    // Reset
-    ['f-name','f-email','f-college','f-mobile'].forEach(function(id){ document.getElementById(id).value=''; });
+    // Reset form
+    ['f-name','f-email','f-college','f-mobile'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f-year').selectedIndex = 0;
     document.getElementById('f-dept').selectedIndex = 0;
-    document.querySelectorAll('.ws-chip').forEach(function(c){ c.classList.remove('selected'); });
+    document.querySelectorAll('.ws-chip').forEach(c => c.classList.remove('selected'));
     selectedWorkshop = '';
     btn.disabled = false;
-    btn.textContent = 'CONFIRM BOOKING →';
+    btn.innerHTML = '<span class="pay-icon">₹</span> PROCEED TO PAYMENT →';
 
   } catch(err) {
     console.error(err);
-    showMsg('form-err','❌ Failed to save. Please try again.');
+    showMsg('form-err', '❌ Failed to save. Please try again.');
     btn.disabled = false;
-    btn.textContent = 'CONFIRM BOOKING →';
+    btn.innerHTML = '<span class="pay-icon">₹</span> PROCEED TO PAYMENT →';
   }
 };
 </script>
