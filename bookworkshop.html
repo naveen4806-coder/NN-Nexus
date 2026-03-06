@@ -66,54 +66,14 @@ body{min-height:100vh;background:#020508;color:#fff;font-family:'Rajdhani',sans-
 .form-msg.show{display:block;}
 .form-msg.err{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);color:var(--error);}
 .form-msg.ok{background:rgba(0,255,170,0.1);border:1px solid rgba(0,255,170,0.3);color:var(--success);}
-
-/* ── Payment button ── */
-.btn-submit {
-  width: 100%;
-  padding: 16px;
-  font-family: 'Orbitron', monospace, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #000;
-  background: var(--cyan);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 6px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
+.btn-submit{width:100%;padding:16px;font-family:'Orbitron',monospace,sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;color:#000;background:var(--cyan);border:none;border-radius:10px;cursor:pointer;transition:all 0.3s;margin-top:6px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;}
 .btn-submit::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transform:translateX(-100%);transition:transform 0.5s;}
 .btn-submit:hover::before{transform:translateX(100%);}
 .btn-submit:hover{background:#fff;box-shadow:0 0 32px rgba(0,255,255,0.45);transform:translateY(-2px);}
 .btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none !important;}
-
-.pay-icon {
-  width: 20px; height: 20px;
-  background: rgba(0,0,0,0.15);
-  border-radius: 4px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px;
-}
-
-.payment-note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 12px;
-  font-size: 12px;
-  color: rgba(160,180,192,0.6);
-  letter-spacing: 0.5px;
-}
-
-.payment-note svg { opacity: 0.5; }
+.pay-icon{width:20px;height:20px;background:rgba(0,0,0,0.15);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.payment-note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:12px;color:rgba(160,180,192,0.6);letter-spacing:0.5px;}
+.payment-note svg{opacity:0.5;}
 
 /* ── Success overlay ── */
 .success-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(2,5,8,0.92);backdrop-filter:blur(16px);justify-content:center;align-items:center;flex-direction:column;gap:20px;text-align:center;padding:40px;}
@@ -123,26 +83,52 @@ body{min-height:100vh;background:#020508;color:#fff;font-family:'Rajdhani',sans-
 .success-overlay p{font-size:16px;color:var(--muted);max-width:460px;line-height:1.7;}
 .success-overlay .s-name{color:var(--cyan);font-weight:700;}
 
-.btn-pay-now {
-  margin-top: 10px;
-  padding: 16px 40px;
-  font-family: 'Orbitron', monospace, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #000;
-  background: var(--cyan);
-  border: none;
-  border-radius: 9px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
+/* ── Razorpay button wrapper ── */
+.rzp-btn-wrap {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  transition: all 0.3s;
-  box-shadow: 0 0 24px rgba(0,255,255,0.3);
+  gap: 10px;
 }
-.btn-pay-now:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,255,255,0.5); }
+
+/* Override Razorpay's default button to match the theme */
+.rzp-btn-wrap form {
+  display: flex;
+  justify-content: center;
+}
+
+.rzp-btn-wrap .razorpay-payment-button {
+  padding: 16px 40px !important;
+  font-family: 'Orbitron', monospace, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  color: #000 !important;
+  background: var(--cyan) !important;
+  border: none !important;
+  border-radius: 9px !important;
+  cursor: pointer !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 0 24px rgba(0,255,255,0.3) !important;
+  transition: all 0.3s !important;
+  min-width: 260px !important;
+}
+
+.rzp-btn-wrap .razorpay-payment-button:hover {
+  background: #fff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 0 40px rgba(0,255,255,0.5) !important;
+}
+
+.rzp-secure-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(160,180,192,0.55);
+  letter-spacing: 0.5px;
+}
 
 .btn-back-home{margin-top:4px;padding:12px 28px;font-family:'Orbitron',monospace,sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);background:transparent;border:1px solid var(--cyan-glow);border-radius:9px;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.3s;}
 .btn-back-home:hover{color:var(--cyan);border-color:var(--cyan);}
@@ -237,14 +223,37 @@ body{min-height:100vh;background:#020508;color:#fff;font-family:'Rajdhani',sans-
   </div>
 </div>
 
-<!-- Success overlay — shown after Firebase save, before payment redirect -->
+<!-- ══════════════════════════════════════════════
+     Success overlay — shown after Firebase save
+     The Razorpay Payment Button is embedded here
+     so users pay without leaving the page.
+     ══════════════════════════════════════════════ -->
 <div class="success-overlay" id="success-overlay">
   <div class="success-icon">✓</div>
   <h2>Details Saved!</h2>
-  <p>Great, <span class="s-name" id="s-name-display">Student</span>! Your registration for <span class="s-name" id="s-ws-display">the workshop</span> has been recorded. Complete your booking by paying the registration fee below.</p>
-  <a href="https://rzp.io/rzp/bz5yE9o" class="btn-pay-now" target="_blank" rel="noopener">
-    ₹ &nbsp;PAY & CONFIRM SEAT →
-  </a>
+  <p>
+    Great, <span class="s-name" id="s-name-display">Student</span>!
+    Your registration for <span class="s-name" id="s-ws-display">the workshop</span>
+    has been recorded. Complete your booking by paying the registration fee below.
+  </p>
+
+  <!-- Razorpay embedded Payment Button -->
+  <div class="rzp-btn-wrap">
+    <form>
+      <script
+        src="https://checkout.razorpay.com/v1/payment-button.js"
+        data-payment_button_id="pl_SNs8nv1G09m6Pc"
+        async>
+      </script>
+    </form>
+    <div class="rzp-secure-note">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <rect x="1" y="4" width="10" height="7" rx="1.5" stroke="#a0b4c0" stroke-width="1.2"/>
+        <path d="M4 4V3a2 2 0 114 0v1" stroke="#a0b4c0" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      Secured by Razorpay
+    </div>
+  </div>
 </div>
 
 <!-- Firebase SDK -->
@@ -309,12 +318,14 @@ window.submitBooking = async function() {
       submittedAt: serverTimestamp()
     });
 
-    // Show success overlay with payment button
+    // Populate success overlay with student name & workshop
     document.getElementById('s-name-display').textContent = name;
     document.getElementById('s-ws-display').textContent   = ws;
+
+    // Show success overlay — Razorpay button is already rendered inside it
     document.getElementById('success-overlay').classList.add('show');
 
-    // Reset form
+    // Reset form fields
     ['f-name','f-email','f-college','f-mobile'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f-year').selectedIndex = 0;
     document.getElementById('f-dept').selectedIndex = 0;
@@ -332,7 +343,7 @@ window.submitBooking = async function() {
 };
 </script>
 
-<!-- Canvas animation -->
+<!-- Canvas network animation -->
 <script>
 (function(){
   var canvas=document.getElementById('net-canvas'),ctx=canvas.getContext('2d'),W,H,pts,NUM=70,DIST=140,mouse={x:-999,y:-999};
@@ -357,5 +368,3 @@ window.submitBooking = async function() {
 </script>
 </body>
 </html>
-
-
