@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Internship Programs | NN Nexus</title>
+  <meta name="description" content="Apply for internships at NN Nexus — Web Development, Graphic Design, Digital Marketing and more. Real projects, mentorship, and industry certificates.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   ROOT & RESET  — identical to NN Nexus
+══════════════════════════════════════════ */
+:root {
+  --cyan       : #00ffff;
+  --cyan-dim   : rgba(0,255,255,0.10);
+  --cyan-glow  : rgba(0,255,255,0.22);
+  --glass      : rgba(6,10,18,0.72);
+  --glass2     : rgba(8,14,22,0.88);
+  --muted      : #a0b4c0;
+  --radius     : 18px;
+  --error      : #ff4d6d;
+  --success    : #00ffaa;
+  --warn       : #ffcc00;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  min-height:100vh;
+  background:#020508;
+  color:#fff;
+  font-family:'Rajdhani',sans-serif;
+  overflow-x:hidden;
+}
+
+/* ══════════════════════════════════════════
+   CANVAS
+══════════════════════════════════════════ */
+#net-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+/* ══════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════ */
+@keyframes fadeUp   { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+@keyframes pulseDot { 0%,100%{box-shadow:0 0 4px var(--cyan)} 50%{box-shadow:0 0 16px var(--cyan)} }
+@keyframes scanLine { 0%{top:-2px} 100%{top:100%} }
+@keyframes shimmer  { 0%{background-position:-200% center} 100%{background-position:200% center} }
+@keyframes float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes glow     { 0%,100%{box-shadow:0 0 10px rgba(0,255,255,.2)} 50%{box-shadow:0 0 30px rgba(0,255,255,.5),0 0 60px rgba(0,255,255,.15)} }
+@keyframes countBar { from{width:0} to{width:var(--w)} }
+@keyframes popIn    { from{opacity:0;transform:scale(0.85) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes checkPop { 0%{transform:scale(0)} 60%{transform:scale(1.3)} 100%{transform:scale(1)} }
+
+/* ══════════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════════ */
+.navbar {
+  position:fixed; top:0; width:100%; height:68px;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0 60px;
+  background:rgba(2,5,8,0.75);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--cyan-glow);
+  z-index:999;
+}
+.nav-logo {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:20px; font-weight:900;
+  color:var(--cyan); letter-spacing:2px; text-decoration:none;
+}
+.nav-logo em { color:#fff; font-style:normal; }
+.nav-links { display:flex; gap:36px; }
+.nav-links a {
+  color:var(--muted); text-decoration:none;
+  font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  transition:color 0.3s; position:relative;
+}
+.nav-links a::after {
+  content:''; position:absolute; bottom:-4px; left:0;
+  width:0; height:1px; background:var(--cyan); transition:width 0.3s;
+}
+.nav-links a:hover,.nav-links a.active { color:var(--cyan); }
+.nav-links a:hover::after,.nav-links a.active::after { width:100%; }
+.btn-nav {
+  padding:8px 18px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:1px;
+  color:var(--cyan); background:transparent;
+  border:1px solid var(--cyan-glow); border-radius:7px;
+  cursor:pointer; transition:all 0.3s; text-decoration:none;
+  display:inline-block;
+}
+.btn-nav:hover { border-color:var(--cyan); background:var(--cyan-dim); }
+.btn-nav.solid { background:var(--cyan); color:#000; border-color:var(--cyan); }
+.btn-nav.solid:hover { background:#fff; box-shadow:0 0 24px rgba(0,255,255,.4); }
+
+/* ══════════════════════════════════════════
+   HERO SECTION
+══════════════════════════════════════════ */
+.hero {
+  position:relative; z-index:1;
+  padding:140px 60px 80px;
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:60px; align-items:center;
+}
+.hero-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  border-radius:40px; padding:6px 16px;
+  font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:22px;
+}
+.badge-dot {
+  width:6px; height:6px; border-radius:50%; background:var(--cyan);
+  animation:pulseDot 1.8s ease-in-out infinite;
+}
+.hero-title {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:clamp(30px,4.5vw,58px); font-weight:900;
+  line-height:1.1; margin-bottom:20px;
+}
+.hero-title .line2 { color:var(--cyan); }
+.hero-title .line3 {
+  background:linear-gradient(90deg,#00ffff,#ffffff,#00ffff);
+  background-size:200% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 3.5s linear infinite;
+}
+.hero-sub {
+  font-size:17px; color:var(--muted); line-height:1.7;
+  max-width:500px; margin-bottom:32px;
+}
+.hero-btns { display:flex; gap:14px; flex-wrap:wrap; }
+.btn-cta {
+  padding:14px 30px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:1.5px;
+  border-radius:9px; cursor:pointer; text-decoration:none;
+  display:inline-block; transition:all 0.3s; border:none;
+}
+.btn-cta.solid  { background:var(--cyan); color:#000; }
+.btn-cta.solid:hover { background:#fff; box-shadow:0 0 30px rgba(0,255,255,.4); transform:translateY(-2px); }
+.btn-cta.ghost  { color:var(--cyan); background:transparent; border:1px solid var(--cyan-glow); }
+.btn-cta.ghost:hover { border-color:var(--cyan); background:var(--cyan-dim); transform:translateY(-2px); }
+
+/* Hero stats */
+.hero-stats { display:flex; gap:36px; margin-top:44px; flex-wrap:wrap; }
+.stat-block  { display:flex; flex-direction:column; gap:4px; }
+.stat-n {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:28px; font-weight:900; color:var(--cyan);
+}
+.stat-l { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+
+/* Hero right — role cards */
+.hero-right { display:flex; flex-direction:column; gap:14px; animation:fadeUp 0.9s 0.3s ease both; }
+.role-preview {
+  background:var(--glass);
+  border:1px solid var(--cyan-glow); border-radius:14px;
+  padding:18px 22px;
+  display:flex; align-items:center; gap:16px;
+  position:relative; overflow:hidden;
+  transition:transform 0.3s, border-color 0.3s;
+  cursor:pointer;
+}
+.role-preview::before {
+  content:''; position:absolute; left:0; top:15%; bottom:15%;
+  width:2px; background:var(--cyan); border-radius:2px;
+  box-shadow:0 0 8px var(--cyan);
+}
+.role-preview:hover { transform:translateX(6px); border-color:rgba(0,255,255,.5); }
+.role-ico {
+  width:46px; height:46px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  font-size:22px; flex-shrink:0;
+}
+.role-info h4 { font-family:'Orbitron',monospace,sans-serif; font-size:13px; font-weight:700; color:#fff; margin-bottom:3px; }
+.role-info p  { font-size:12px; color:var(--muted); }
+.role-badge {
+  margin-left:auto; font-size:9px; font-weight:700; letter-spacing:1px;
+  text-transform:uppercase; padding:3px 9px; border-radius:4px;
+  flex-shrink:0;
+}
+.role-badge.open   { background:rgba(0,255,170,.12); border:1px solid rgba(0,255,170,.3); color:var(--success); }
+.role-badge.hot    { background:rgba(255,204,0,.1);  border:1px solid rgba(255,204,0,.3);  color:var(--warn); }
+
+/* ══════════════════════════════════════════
+   SECTION COMMONS
+══════════════════════════════════════════ */
+.sec-divider {
+  height:1px; margin:0 60px;
+  background:linear-gradient(90deg,transparent,var(--cyan-glow),transparent);
+}
+.section { padding:90px 60px; position:relative; z-index:1; }
+.sec-label  { font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--cyan); margin-bottom:10px; }
+.sec-title  { font-family:'Orbitron',monospace,sans-serif; font-size:clamp(22px,3vw,36px); font-weight:700; color:#fff; margin-bottom:14px; }
+.sec-sub    { font-size:16px; color:var(--muted); max-width:560px; line-height:1.65; }
+
+/* ══════════════════════════════════════════
+   ROLES GRID
+══════════════════════════════════════════ */
+.roles-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:50px;
+}
+.role-card {
+  background:var(--glass);
+  border:1px solid var(--cyan-glow); border-radius:var(--radius);
+  padding:30px 26px;
+  display:flex; flex-direction:column; gap:14px;
+  position:relative; overflow:hidden;
+  transition:transform 0.35s, border-color 0.35s, box-shadow 0.35s;
+  cursor:pointer;
+  animation:fadeUp 0.6s ease both;
+}
+.role-card:nth-child(1){animation-delay:.05s}
+.role-card:nth-child(2){animation-delay:.12s}
+.role-card:nth-child(3){animation-delay:.18s}
+.role-card:nth-child(4){animation-delay:.24s}
+.role-card:nth-child(5){animation-delay:.30s}
+.role-card:nth-child(6){animation-delay:.36s}
+.role-card::before {
+  content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,.5),transparent);
+}
+.role-card:hover {
+  transform:translateY(-8px);
+  border-color:rgba(0,255,255,.5);
+  box-shadow:0 22px 60px rgba(0,0,0,.8), 0 0 40px rgba(0,255,255,.08);
+}
+.role-card.selected {
+  border-color:var(--cyan);
+  background:rgba(0,255,255,.06);
+  box-shadow:0 0 30px rgba(0,255,255,.15),0 22px 60px rgba(0,0,0,.8);
+}
+.role-card.selected::after {
+  content:'✓'; position:absolute; top:14px; right:16px;
+  width:24px; height:24px; border-radius:50%;
+  background:var(--cyan); color:#000;
+  font-size:12px; font-weight:900;
+  display:flex; align-items:center; justify-content:center;
+  animation:checkPop 0.3s cubic-bezier(.22,.61,.36,1) both;
+}
+.rc-num {
+  position:absolute; right:16px; top:12px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:48px; font-weight:900; color:rgba(0,255,255,.04);
+  pointer-events:none; user-select:none;
+}
+.rc-ico {
+  width:52px; height:52px; border-radius:13px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  font-size:24px; flex-shrink:0;
+}
+.rc-tag {
+  display:inline-block; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--cyan); background:var(--cyan-dim); border:1px solid var(--cyan-glow);
+  border-radius:4px; padding:3px 10px; width:fit-content;
+}
+.rc-tag.hot { color:var(--warn); background:rgba(255,204,0,.08); border-color:rgba(255,204,0,.25); }
+.role-card h3 { font-family:'Orbitron',monospace,sans-serif; font-size:15px; font-weight:700; color:#fff; }
+.role-card p  { font-size:14px; color:var(--muted); line-height:1.6; flex:1; }
+.rc-meta {
+  display:flex; gap:16px; flex-wrap:wrap;
+}
+.rc-meta span {
+  font-size:11px; font-weight:700; letter-spacing:.5px;
+  color:var(--muted); display:flex; align-items:center; gap:5px;
+}
+.rc-meta span b { color:#fff; }
+.btn-apply {
+  width:100%; padding:11px;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:1.5px;
+  color:#000; background:var(--cyan);
+  border:none; border-radius:8px; cursor:pointer;
+  transition:all 0.3s; margin-top:4px;
+}
+.btn-apply:hover { background:#fff; box-shadow:0 0 20px rgba(0,255,255,.4); }
+
+/* ══════════════════════════════════════════
+   PERKS STRIP
+══════════════════════════════════════════ */
+.perks-strip {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:50px;
+}
+.perk {
+  background:var(--glass);
+  border:1px solid var(--cyan-glow); border-radius:14px;
+  padding:22px 20px;
+  display:flex; flex-direction:column; gap:10px;
+  transition:transform 0.3s, border-color 0.3s;
+  position:relative; overflow:hidden;
+}
+.perk:hover { transform:translateY(-5px); border-color:rgba(0,255,255,.45); }
+.perk-ico { font-size:28px; }
+.perk h4 { font-family:'Orbitron',monospace,sans-serif; font-size:13px; font-weight:700; color:#fff; }
+.perk p  { font-size:13px; color:var(--muted); line-height:1.6; }
+
+/* ══════════════════════════════════════════
+   BOOKING FORM
+══════════════════════════════════════════ */
+#book { scroll-margin-top:80px; }
+.form-wrap {
+  max-width:760px; margin:50px auto 0;
+}
+.form-card {
+  background:var(--glass2);
+  backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--cyan-glow); border-radius:22px;
+  padding:44px 48px;
+  position:relative; overflow:hidden;
+}
+.form-card::before {
+  content:''; position:absolute; top:0; left:8%; right:8%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,.55),transparent);
+}
+.form-card::after {
+  content:''; position:absolute; left:0; right:0; height:40px;
+  background:linear-gradient(to bottom,transparent,rgba(0,255,255,.025),transparent);
+  animation:scanLine 5s linear infinite; pointer-events:none;
+}
+
+/* Step indicator */
+.steps {
+  display:flex; align-items:center; gap:0; margin-bottom:38px;
+}
+.step-item {
+  display:flex; align-items:center; gap:10px; flex:1;
+}
+.step-item:last-child { flex:0; }
+.step-circle {
+  width:34px; height:34px; border-radius:50%; flex-shrink:0;
+  border:2px solid var(--cyan-glow);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:12px; font-weight:700; color:var(--muted);
+  background:transparent; transition:all 0.4s;
+}
+.step-circle.active { border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 14px rgba(0,255,255,.3); animation:glow 2s ease infinite; }
+.step-circle.done   { background:var(--cyan); border-color:var(--cyan); color:#000; }
+.step-circle.done::before { content:'✓'; }
+.step-label {
+  font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  color:var(--muted); transition:color 0.4s;
+}
+.step-label.active { color:var(--cyan); }
+.step-line {
+  flex:1; height:1px; margin:0 8px;
+  background:var(--cyan-glow); transition:background 0.4s;
+}
+.step-line.done { background:var(--cyan); }
+
+/* Step panels */
+.step-panel { display:none; animation:fadeUp 0.4s ease both; }
+.step-panel.active { display:flex; flex-direction:column; gap:20px; }
+
+/* Selected role pill */
+.selected-role-pill {
+  display:flex; align-items:center; gap:12px;
+  background:rgba(0,255,255,.06); border:1px solid var(--cyan-glow);
+  border-radius:10px; padding:12px 16px; margin-bottom:4px;
+}
+.selected-role-pill .pill-ico { font-size:22px; }
+.selected-role-pill .pill-name { font-family:'Orbitron',monospace,sans-serif; font-size:14px; font-weight:700; color:var(--cyan); }
+.selected-role-pill .pill-sub  { font-size:12px; color:var(--muted); }
+.pill-change {
+  margin-left:auto; font-size:11px; font-weight:700; letter-spacing:1px;
+  color:var(--cyan); background:none; border:none; cursor:pointer;
+  font-family:'Orbitron',monospace,sans-serif; text-transform:uppercase;
+  opacity:.7; transition:opacity .2s;
+}
+.pill-change:hover { opacity:1; }
+
+/* Form rows */
+.form-row   { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.input-group { display:flex; flex-direction:column; gap:6px; }
+.input-group label {
+  font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted);
+}
+.input-wrap { position:relative; }
+.input-wrap input,
+.input-wrap select,
+.input-wrap textarea {
+  width:100%; padding:13px 16px;
+  border-radius:9px; border:1px solid var(--cyan-glow);
+  background:rgba(0,255,255,.04); color:#fff;
+  font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:500;
+  outline:none; transition:all 0.3s; resize:vertical;
+}
+.input-wrap select { cursor:pointer; }
+.input-wrap select option { background:#0b1228; }
+.input-wrap input:focus,
+.input-wrap select:focus,
+.input-wrap textarea:focus {
+  border-color:var(--cyan); background:rgba(0,255,255,.07);
+  box-shadow:0 0 16px rgba(0,255,255,.18);
+}
+.input-wrap input.err, .input-wrap select.err, .input-wrap textarea.err {
+  border-color:var(--error); box-shadow:0 0 10px rgba(255,77,109,.2);
+}
+
+/* Radio mode select */
+.mode-select { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.mode-opt {
+  border:1px solid var(--cyan-glow); border-radius:9px;
+  padding:14px 16px; cursor:pointer;
+  display:flex; align-items:center; gap:12px;
+  transition:all 0.25s; position:relative;
+}
+.mode-opt:hover { border-color:rgba(0,255,255,.4); background:rgba(0,255,255,.03); }
+.mode-opt.chosen { border-color:var(--cyan); background:rgba(0,255,255,.07); }
+.mode-opt input[type="radio"] { display:none; }
+.mode-circle {
+  width:18px; height:18px; border-radius:50%; border:2px solid var(--cyan-glow);
+  flex-shrink:0; position:relative; transition:all .25s;
+}
+.mode-opt.chosen .mode-circle { border-color:var(--cyan); }
+.mode-opt.chosen .mode-circle::after {
+  content:''; position:absolute; inset:3px; border-radius:50%; background:var(--cyan);
+}
+.mode-opt span { font-size:14px; font-weight:600; color:var(--muted); transition:color .25s; }
+.mode-opt.chosen span { color:#fff; }
+.mode-ico { font-size:20px; }
+
+/* Checkbox */
+.check-row  { display:flex; align-items:flex-start; gap:10px; }
+.check-row input[type="checkbox"] {
+  appearance:none; width:18px; height:18px; flex-shrink:0; margin-top:2px;
+  border:1px solid var(--cyan-glow); border-radius:4px;
+  background:rgba(0,255,255,.04); cursor:pointer; transition:all .25s; position:relative;
+}
+.check-row input:checked { background:var(--cyan); border-color:var(--cyan); }
+.check-row input:checked::after {
+  content:'✓'; position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%); font-size:11px; color:#000; font-weight:900;
+}
+.check-row label { font-size:14px; color:var(--muted); line-height:1.5; cursor:pointer; }
+.check-row label a { color:var(--cyan); text-decoration:none; }
+
+/* Messages */
+.msg { padding:10px 14px; border-radius:8px; font-size:13px; font-weight:600; letter-spacing:.5px; display:none; }
+.msg.show { display:block; }
+.err-msg { background:rgba(255,77,109,.1); border:1px solid rgba(255,77,109,.3); color:var(--error); }
+.ok-msg  { background:rgba(0,255,170,.1);  border:1px solid rgba(0,255,170,.3);  color:var(--success); }
+
+/* Nav buttons */
+.form-nav { display:flex; gap:12px; justify-content:flex-end; margin-top:8px; }
+.btn-back {
+  padding:13px 24px;
+  font-family:'Orbitron',monospace,sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px;
+  color:var(--cyan); background:transparent; border:1px solid var(--cyan-glow);
+  border-radius:9px; cursor:pointer; transition:all .3s;
+}
+.btn-back:hover { border-color:var(--cyan); background:var(--cyan-dim); }
+.btn-next-step, .btn-submit-form {
+  padding:13px 28px;
+  font-family:'Orbitron',monospace,sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px;
+  color:#000; background:var(--cyan); border:none; border-radius:9px;
+  cursor:pointer; transition:all .3s;
+}
+.btn-next-step:hover, .btn-submit-form:hover {
+  background:#fff; box-shadow:0 0 28px rgba(0,255,255,.4); transform:translateY(-2px);
+}
+
+/* ══════════════════════════════════════════
+   SUCCESS SCREEN
+══════════════════════════════════════════ */
+.success-screen {
+  display:none; text-align:center; padding:20px 0;
+  animation:popIn 0.5s cubic-bezier(.22,.61,.36,1) both;
+}
+.success-screen.show { display:block; }
+.success-icon {
+  font-size:64px; margin-bottom:16px;
+  animation:float 3s ease-in-out infinite;
+}
+.success-title {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:28px; font-weight:900; color:var(--cyan);
+  margin-bottom:10px;
+}
+.success-sub { font-size:16px; color:var(--muted); line-height:1.7; max-width:440px; margin:0 auto 28px; }
+.confirm-box {
+  background:rgba(0,255,255,.05); border:1px solid var(--cyan-glow);
+  border-radius:14px; padding:20px 24px; text-align:left; margin-bottom:28px;
+}
+.confirm-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 0; border-bottom:1px solid rgba(0,255,255,.08);
+  font-size:14px;
+}
+.confirm-row:last-child { border:none; }
+.confirm-row .lbl { color:var(--muted); font-weight:600; }
+.confirm-row .val { color:#fff; font-weight:700; }
+.ref-num {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:13px; color:var(--cyan); letter-spacing:2px;
+}
+.success-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+/* ══════════════════════════════════════════
+   TIMELINE
+══════════════════════════════════════════ */
+.timeline { margin-top:50px; position:relative; padding-left:32px; }
+.timeline::before {
+  content:''; position:absolute; left:8px; top:0; bottom:0;
+  width:2px; background:linear-gradient(to bottom,var(--cyan),rgba(0,255,255,.1));
+  border-radius:2px;
+}
+.tl-item {
+  position:relative; margin-bottom:36px;
+  background:var(--glass); border:1px solid var(--cyan-glow);
+  border-radius:14px; padding:20px 22px;
+  transition:border-color .3s, transform .3s;
+}
+.tl-item:hover { border-color:rgba(0,255,255,.4); transform:translateX(4px); }
+.tl-dot {
+  position:absolute; left:-37px; top:22px;
+  width:12px; height:12px; border-radius:50%; background:var(--cyan);
+  box-shadow:0 0 10px var(--cyan);
+  border:2px solid #020508;
+}
+.tl-week {
+  font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:6px;
+}
+.tl-item h4 { font-family:'Orbitron',monospace,sans-serif; font-size:14px; font-weight:700; color:#fff; margin-bottom:6px; }
+.tl-item p  { font-size:14px; color:var(--muted); line-height:1.6; }
+
+/* ══════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════ */
+.footer {
+  position:relative; z-index:1;
+  padding:36px 60px; margin-top:80px;
+  border-top:1px solid var(--cyan-glow);
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:14px;
+  background:rgba(0,0,0,.5); backdrop-filter:blur(10px);
+}
+.footer-logo { font-family:'Orbitron',monospace,sans-serif; font-size:18px; font-weight:900; color:var(--cyan); letter-spacing:2px; }
+.footer-logo em { color:#fff; font-style:normal; }
+.footer-links { display:flex; gap:24px; }
+.footer-links a { font-size:13px; color:var(--muted); text-decoration:none; transition:color .2s; }
+.footer-links a:hover { color:var(--cyan); }
+.footer-copy { font-size:12px; color:var(--muted); }
+
+/* ══════════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════════ */
+::-webkit-scrollbar       { width:5px; }
+::-webkit-scrollbar-track { background:#000; }
+::-webkit-scrollbar-thumb { background:rgba(0,255,255,.3); border-radius:3px; }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media(max-width:1100px) {
+  .hero { grid-template-columns:1fr; padding-bottom:40px; }
+  .hero-right { display:none; }
+  .roles-grid { grid-template-columns:repeat(2,1fr); }
+  .perks-strip { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:900px) {
+  .navbar { padding:0 28px; }
+  .hero,.section { padding-left:28px; padding-right:28px; }
+  .sec-divider { margin:0 28px; }
+  .footer { padding:28px; }
+  .form-card { padding:28px 22px; }
+  .steps { gap:4px; }
+  .step-label { display:none; }
+}
+@media(max-width:620px) {
+  .roles-grid { grid-template-columns:1fr; }
+  .perks-strip { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .mode-select { grid-template-columns:1fr; }
+  .nav-links { display:none; }
+  .hero-title { font-size:30px; }
+}
+/* ══════════════════════════════════════════
+   PAYMENT STYLES
+══════════════════════════════════════════ */
+.pay-header {
+  background:rgba(0,255,255,.05); border:1px solid var(--cyan-glow);
+  border-radius:12px; padding:18px 22px; margin-bottom:22px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.pay-amount-box { display:flex; flex-direction:column; gap:4px; }
+.pay-label  { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+.pay-amount {
+  font-family:'Orbitron',monospace,sans-serif;
+  font-size:32px; font-weight:900; color:var(--cyan); line-height:1;
+}
+.pay-gst  { font-size:14px; color:var(--muted); }
+.pay-note { font-size:12px; color:var(--muted); }
+
+.pay-tabs {
+  display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;
+}
+.pay-tab {
+  padding:9px 18px;
+  font-family:'Orbitron',monospace,sans-serif; font-size:10px; font-weight:700; letter-spacing:1px;
+  border:1px solid var(--cyan-glow); border-radius:8px;
+  background:transparent; color:var(--muted); cursor:pointer; transition:all .25s;
+}
+.pay-tab.active { background:var(--cyan); color:#000; border-color:var(--cyan); }
+.pay-tab:hover:not(.active) { border-color:var(--cyan); color:var(--cyan); }
+
+.pay-panel { display:none; animation:fadeUp .3s ease both; }
+.pay-panel.active { display:block; }
+
+/* UPI */
+.upi-qr-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; padding:16px 0 8px; }
+.upi-qr {
+  width:180px; height:180px; border-radius:12px;
+  border:1px solid var(--cyan-glow); background:rgba(0,255,255,.03);
+  display:grid; place-items:center; overflow:hidden;
+  padding:10px;
+}
+.upi-qr canvas { border-radius:6px; }
+.upi-id-label { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+.upi-id-box {
+  display:flex; align-items:center; gap:10px;
+  background:rgba(0,255,255,.06); border:1px solid var(--cyan-glow);
+  border-radius:8px; padding:8px 14px;
+}
+.upi-id-box span { font-family:'Orbitron',monospace,sans-serif; font-size:13px; font-weight:700; color:var(--cyan); }
+.copy-btn {
+  font-family:'Orbitron',monospace,sans-serif; font-size:9px; font-weight:700; letter-spacing:1px;
+  padding:4px 10px; border-radius:5px; border:1px solid var(--cyan-glow);
+  background:transparent; color:var(--cyan); cursor:pointer; transition:all .2s;
+}
+.copy-btn:hover { background:var(--cyan); color:#000; }
+.upi-hint { font-size:12px; color:var(--muted); text-align:center; line-height:1.6; max-width:320px; }
+
+/* Card */
+.card-preview {
+  background:linear-gradient(135deg,#0a1a2e,#0d2545,#0a3060);
+  border:1px solid rgba(0,255,255,.25); border-radius:14px;
+  padding:22px 24px; margin-bottom:18px;
+  position:relative; overflow:hidden; min-height:130px;
+}
+.card-preview::before {
+  content:''; position:absolute; top:-40%; right:-20%;
+  width:200px; height:200px; border-radius:50%;
+  background:rgba(0,255,255,.07);
+}
+.cp-chip { font-size:22px; margin-bottom:14px; color:var(--cyan); }
+.cp-num  { font-family:'Orbitron',monospace,sans-serif; font-size:16px; font-weight:700; color:#fff; letter-spacing:.18em; margin-bottom:14px; }
+.cp-row  { display:flex; gap:40px; }
+.cp-lbl  { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.45); margin-bottom:3px; }
+.cp-val  { font-family:'Orbitron',monospace,sans-serif; font-size:12px; font-weight:700; color:#fff; }
+
+/* Net Banking */
+.bank-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.bank-opt {
+  background:var(--glass); border:1px solid var(--cyan-glow); border-radius:9px;
+  padding:14px 10px; text-align:center; font-size:13px; font-weight:700;
+  color:var(--muted); cursor:pointer; transition:all .25s;
+}
+.bank-opt:hover  { border-color:rgba(0,255,255,.4); color:#fff; }
+.bank-opt.chosen { border-color:var(--cyan); background:rgba(0,255,255,.08); color:var(--cyan); }
+
+/* Secure badge */
+.pay-secure {
+  display:flex; align-items:center; gap:8px; justify-content:center;
+  margin-top:18px;
+  font-size:12px; color:var(--muted); font-weight:600;
+}
+
+/* Razorpay wrapper */
+.razorpay-wrap { text-align:center; padding:8px 0; }
+.pay-method-label {
+  font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.6;
+}
+.razorpay-btn-holder {
+  display:inline-block;
+  background:rgba(0,255,255,.04);
+  border:1px solid var(--cyan-glow);
+  border-radius:12px;
+  padding:20px 32px;
+  margin-bottom:16px;
+}
+.razorpay-btn-holder form { display:flex; justify-content:center; }
+
+</style>
+</head>
+<body>
+
+<canvas id="net-canvas"></canvas>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">NN<em> Nexus</em></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="#roles">Roles</a>
+    <a href="#book" class="active">Internship</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <a href="#book" class="btn-nav solid">Apply Now</a>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero">
+  <div style="animation:fadeUp 0.7s ease both;">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Applications Open — 2025 Cohort
+    </div>
+    <h1 class="hero-title">
+      Real Work.<br>
+      <span class="line2">Real Skills.</span><br>
+      <span class="line3">Real Certificates.</span>
+    </h1>
+    <p class="hero-sub">
+      Join NN Nexus as an intern and work on live projects alongside industry mentors.
+      Build your portfolio, earn a recognised certificate, and launch your tech career from Coimbatore.
+    </p>
+    <div class="hero-btns">
+      <a href="#book" class="btn-cta solid">Book Your Spot →</a>
+      <a href="#roles" class="btn-cta ghost">View Open Roles</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-block"><span class="stat-n" data-target="4">0</span><span class="stat-l">Open Roles</span></div>
+      <div class="stat-block"><span class="stat-n" data-target="100">0</span><span class="stat-l">% Certificate Rate</span></div>
+      <div class="stat-block"><span class="stat-n" data-target="2">0</span><span class="stat-l">Month Programme</span></div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="role-preview" onclick="scrollToRole('webdev')">
+      <div class="role-ico">💻</div>
+      <div class="role-info"><h4>Web Development</h4><p>HTML · CSS · JavaScript · React</p></div>
+      <span class="role-badge hot">🔥 Hot</span>
+    </div>
+    <div class="role-preview" onclick="scrollToRole('uiux')">
+      <div class="role-ico">🎨</div>
+      <div class="role-info"><h4>UI/UX Design</h4><p>Figma · Prototyping · Research</p></div>
+      <span class="role-badge open">Open</span>
+    </div>
+    <div class="role-preview" onclick="scrollToRole('marketing')">
+      <div class="role-ico">📣</div>
+      <div class="role-info"><h4>Digital Marketing</h4><p>SEO · Social Media · Analytics</p></div>
+      <span class="role-badge open">Open</span>
+    </div>
+
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ══════════ ROLES ══════════ -->
+<section class="section" id="roles">
+  <p class="sec-label">Open Positions</p>
+  <h2 class="sec-title">Choose Your Role</h2>
+  <p class="sec-sub">Click a role to select it, then scroll down to fill in the application form.</p>
+
+  <div class="roles-grid" id="rolesGrid">
+
+    <div class="role-card" id="role-webdev" data-role="Web Development" data-icon="💻" data-duration="2 Months" data-mode="Remote" onclick="selectRole(this)">
+      <span class="rc-num">01</span>
+      <div class="rc-ico">💻</div>
+      <span class="rc-tag hot">🔥 High Demand</span>
+      <h3>Web Development</h3>
+      <p>Build responsive websites and web apps using HTML, CSS, JavaScript, and React. Work on live client projects from day one.</p>
+      <div class="rc-meta">
+        <span>⏱ Duration: <b>2 Months</b></span>
+        <span>📍 <b>Remote</b></span>
+        <span>🎓 Certificate: <b>Yes</b></span>
+      </div>
+      <button class="btn-apply" onclick="event.stopPropagation();selectAndBook('Web Development','💻')">Apply for This Role →</button>
+    </div>
+
+    <div class="role-card" id="role-uiux" data-role="UI/UX Design" data-icon="🎨" data-duration="2 Months" data-mode="Remote" onclick="selectRole(this)">
+      <span class="rc-num">02</span>
+      <div class="rc-ico">🎨</div>
+      <span class="rc-tag">Open</span>
+      <h3>UI/UX Design</h3>
+      <p>Create user interfaces and design systems using Figma. Learn prototyping, usability testing, and brand identity design.</p>
+      <div class="rc-meta">
+        <span>⏱ Duration: <b>2 Months</b></span>
+        <span>📍 <b>Remote</b></span>
+        <span>🎓 Certificate: <b>Yes</b></span>
+      </div>
+      <button class="btn-apply" onclick="event.stopPropagation();selectAndBook('UI/UX Design','🎨')">Apply for This Role →</button>
+    </div>
+
+    <div class="role-card" id="role-marketing" data-role="Digital Marketing" data-icon="📣" data-duration="2 Months" data-mode="Remote" onclick="selectRole(this)">
+      <span class="rc-num">03</span>
+      <div class="rc-ico">📣</div>
+      <span class="rc-tag">Open</span>
+      <h3>Digital Marketing</h3>
+      <p>Run real SEO campaigns, manage social media, and analyse ad performance. Learn to drive traffic and generate leads that matter.</p>
+      <div class="rc-meta">
+        <span>⏱ Duration: <b>2 Months</b></span>
+        <span>📍 <b>Remote</b></span>
+        <span>🎓 Certificate: <b>Yes</b></span>
+      </div>
+      <button class="btn-apply" onclick="event.stopPropagation();selectAndBook('Digital Marketing','📣')">Apply for This Role →</button>
+    </div>
+
+    <div class="role-card" id="role-graphic" data-role="Graphic Design" data-icon="🖼️" data-duration="1.5 Months" data-mode="Remote" onclick="selectRole(this)">
+      <span class="rc-num">04</span>
+      <div class="rc-ico">🖼️</div>
+      <span class="rc-tag">Open</span>
+      <h3>Graphic Design</h3>
+      <p>Design logos, social media kits, and brand identities for real clients. Work in Canva, Illustrator, and Photoshop under mentors.</p>
+      <div class="rc-meta">
+        <span>⏱ Duration: <b>1.5 Months</b></span>
+        <span>📍 <b>Remote</b></span>
+        <span>🎓 Certificate: <b>Yes</b></span>
+      </div>
+      <button class="btn-apply" onclick="event.stopPropagation();selectAndBook('Graphic Design','🖼️')">Apply for This Role →</button>
+    </div>
+
+
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ══════════ PERKS ══════════ -->
+<section class="section" id="perks">
+  <p class="sec-label">Why Intern With Us</p>
+  <h2 class="sec-title">What You'll Get</h2>
+  <p class="sec-sub">More than just a certificate — a launchpad for your career.</p>
+  <div class="perks-strip">
+    <div class="perk">
+      <div class="perk-ico">🏅</div>
+      <h4>Industry Certificate</h4>
+      <p>Receive a recognised certificate from NN Nexus upon successful completion of your internship.</p>
+    </div>
+    <div class="perk">
+      <div class="perk-ico">🧑‍💻</div>
+      <h4>Live Project Experience</h4>
+      <p>Work on actual client projects — not toy exercises. Your portfolio will stand out instantly.</p>
+    </div>
+    <div class="perk">
+      <div class="perk-ico">👨‍🏫</div>
+      <h4>1-on-1 Mentorship</h4>
+      <p>Get direct guidance from industry professionals who review your work and fast-track your growth.</p>
+    </div>
+    <div class="perk">
+      <div class="perk-ico">🔗</div>
+      <h4>LinkedIn Endorsement</h4>
+      <p>We'll recommend your skills on LinkedIn and help you craft a profile that gets noticed by recruiters.</p>
+    </div>
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ══════════ TIMELINE ══════════ -->
+<section class="section" id="timeline">
+  <p class="sec-label">Programme Structure</p>
+  <h2 class="sec-title">Your Internship Journey</h2>
+  <p class="sec-sub">A structured 2-month programme designed to maximise your learning and output.</p>
+  <div class="timeline">
+    <div class="tl-item"><span class="tl-dot"></span><p class="tl-week">Week 1</p><h4>Onboarding & Orientation</h4><p>Meet your mentor, get assigned to a project, and set up your workflow and tools.</p></div>
+    <div class="tl-item"><span class="tl-dot"></span><p class="tl-week">Weeks 2–3</p><h4>Skill Building & Tasks</h4><p>Complete structured tasks and micro-projects to sharpen your core skills under guidance.</p></div>
+    <div class="tl-item"><span class="tl-dot"></span><p class="tl-week">Weeks 4–6</p><h4>Live Project Work</h4><p>Contribute directly to a client project — write real code, design real assets, or run real campaigns.</p></div>
+    <div class="tl-item"><span class="tl-dot"></span><p class="tl-week">Weeks 7–8</p><h4>Final Deliverable & Review</h4><p>Present your work, receive detailed feedback, and polish your final project for your portfolio.</p></div>
+    <div class="tl-item"><span class="tl-dot"></span><p class="tl-week">Completion</p><h4>Certificate & LinkedIn Boost</h4><p>Receive your official NN Nexus certificate and a LinkedIn recommendation from your mentor.</p></div>
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ══════════ BOOKING FORM ══════════ -->
+<section class="section" id="book">
+  <p class="sec-label">Application</p>
+  <h2 class="sec-title">Book Your Internship</h2>
+  <p class="sec-sub">Fill out the form below and our team will contact you within 24 hours to confirm your spot.</p>
+
+  <div class="form-wrap">
+    <div class="form-card" id="formCard">
+
+      <!-- Step indicator -->
+      <div class="steps" id="stepsBar">
+        <div class="step-item">
+          <div class="step-circle active" id="sc1">1</div>
+          <span class="step-label active" id="sl1">Role</span>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-item">
+          <div class="step-circle" id="sc2">2</div>
+          <span class="step-label" id="sl2">Details</span>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-item">
+          <div class="step-circle" id="sc3">3</div>
+          <span class="step-label" id="sl3">Review</span>
+        </div>
+        <div class="step-line" id="line3"></div>
+        <div class="step-item">
+          <div class="step-circle" id="sc4">4</div>
+          <span class="step-label" id="sl4">Payment</span>
+        </div>
+      </div>
+
+      <!-- ── STEP 1: Role selection ── -->
+      <div class="step-panel active" id="sp1">
+        <p style="font-size:15px;color:var(--muted);margin-bottom:4px;">Select the internship role you're applying for:</p>
+
+        <div class="input-group">
+          <label>Internship Role</label>
+          <div class="input-wrap">
+            <select id="f-role" onchange="onRoleSelect(this.value)">
+              <option value="">— Choose a role —</option>
+              <option value="Web Development">💻 Web Development</option>
+              <option value="UI/UX Design">🎨 UI/UX Design</option>
+              <option value="Digital Marketing">📣 Digital Marketing</option>
+              <option value="Graphic Design">🖼️ Graphic Design</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Preferred Start Date</label>
+          <div class="input-wrap">
+            <input type="date" id="f-date" min="">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Internship Mode</label>
+          <div class="mode-select" style="grid-template-columns:1fr;">
+            <label class="mode-opt chosen" id="mode-remote">
+              <input type="radio" name="mode" value="Remote" checked>
+              <div class="mode-circle"></div>
+              <span class="mode-ico">🏠</span>
+              <span>Remote</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="msg err-msg" id="err1"></div>
+        <div class="form-nav">
+          <button class="btn-next-step" onclick="nextStep(1)">Next: Your Details →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: Personal Details ── -->
+      <div class="step-panel" id="sp2">
+        <div class="selected-role-pill" id="selectedPill">
+          <span class="pill-ico" id="pillIco">💻</span>
+          <div>
+            <div class="pill-name" id="pillName">Web Development</div>
+            <div class="pill-sub">Selected Role</div>
+          </div>
+          <button class="pill-change" onclick="goStep(1)">Change</button>
+        </div>
+
+        <div class="form-row">
+          <div class="input-group">
+            <label>First Name</label>
+            <div class="input-wrap"><input type="text" id="f-fname" placeholder="Your first name"></div>
+          </div>
+          <div class="input-group">
+            <label>Last Name</label>
+            <div class="input-wrap"><input type="text" id="f-lname" placeholder="Your last name"></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="input-group">
+            <label>Email Address</label>
+            <div class="input-wrap"><input type="email" id="f-email" placeholder="you@example.com"></div>
+          </div>
+          <div class="input-group">
+            <label>Phone Number</label>
+            <div class="input-wrap"><input type="tel" id="f-phone" placeholder="+91 98765 43210"></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="input-group">
+            <label>College / Institution</label>
+            <div class="input-wrap"><input type="text" id="f-college" placeholder="Your college name"></div>
+          </div>
+          <div class="input-group">
+            <label>Current Year / Degree</label>
+            <div class="input-wrap">
+              <select id="f-year">
+                <option value="">Select year</option>
+                <option>1st Year</option>
+                <option>2nd Year</option>
+                <option>3rd Year</option>
+                <option>Final Year</option>
+                <option>Post Graduate</option>
+                <option>Recently Graduated</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>LinkedIn Profile URL (optional)</label>
+          <div class="input-wrap"><input type="url" id="f-linkedin" placeholder="https://linkedin.com/in/yourname"></div>
+        </div>
+
+        <div class="input-group">
+          <label>Why do you want to join NN Nexus?</label>
+          <div class="input-wrap">
+            <textarea id="f-why" rows="3" placeholder="Tell us in 2–3 sentences what motivates you to apply for this role…"></textarea>
+          </div>
+        </div>
+
+        <div class="msg err-msg" id="err2"></div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="goStep(1)">← Back</button>
+          <button class="btn-next-step" onclick="nextStep(2)">Review Application →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: Review & Confirm ── -->
+      <div class="step-panel" id="sp3">
+        <p style="font-size:15px;color:var(--muted);margin-bottom:16px;">Please review your application before proceeding to payment:</p>
+
+        <div class="confirm-box" id="reviewBox"></div>
+
+        <div class="check-row">
+          <input type="checkbox" id="f-terms">
+          <label for="f-terms">I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a> of NN Nexus.</label>
+        </div>
+        <div class="check-row" style="margin-top:8px;">
+          <input type="checkbox" id="f-newsletter" checked>
+          <label for="f-newsletter">Send me updates about workshops, events, and career resources from NN Nexus.</label>
+        </div>
+
+        <div class="msg err-msg" id="err3"></div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="goStep(2)">← Edit</button>
+          <button class="btn-next-step" onclick="nextStep(3)">Proceed to Payment →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 4: Payment ── -->
+      <div class="step-panel" id="sp4">
+
+        <div class="pay-header">
+          <div class="pay-amount-box">
+            <span class="pay-label">Registration Fee</span>
+            <span class="pay-amount">Secured Payment</span>
+            <span class="pay-note">One-time · Includes certificate &amp; mentorship</span>
+          </div>
+          <div style="font-size:28px;">🔐</div>
+        </div>
+
+        <!-- Application summary pill -->
+        <div class="confirm-box" id="payReviewBox" style="margin-bottom:20px;"></div>
+
+        <!-- Razorpay Button -->
+        <div class="razorpay-wrap">
+          <p class="pay-method-label">Complete your payment securely via Razorpay</p>
+          <div class="razorpay-btn-holder">
+            <form>
+              <script src="https://checkout.razorpay.com/v1/payment-button.js"
+                data-payment_button_id="pl_SNs8nv1G09m6Pc" async></script>
+            </form>
+          </div>
+          <div class="pay-secure">
+            <span>🔒</span>
+            <span>Secured by Razorpay · UPI · Cards · Net Banking · Wallets</span>
+          </div>
+        </div>
+
+        <div class="form-nav" style="margin-top:20px;">
+          <button class="btn-back" onclick="goStep(3)">← Back</button>
+        </div>
+      </div>
+
+    </div><!-- /form-card -->
+
+    <!-- ── SUCCESS ── -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">🚀</div>
+      <h2 class="success-title">Application Submitted!</h2>
+      <p class="success-sub">
+        Thank you for applying to NN Nexus! Our team will review your application
+        and reach out within <strong style="color:#fff;">24 hours</strong> to confirm your internship slot.
+      </p>
+      <div class="confirm-box" id="confirmBox"></div>
+      <div class="success-btns">
+        <a href="index.html" class="btn-cta ghost">← Back to Home</a>
+        <a href="#roles" class="btn-cta solid" onclick="resetForm()">Apply for Another Role</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="footer">
+  <span class="footer-logo">NN<em> Nexus</em></span>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="workshop.html">Workshops</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <span class="footer-copy">© 2026 NN Nexus. All rights reserved.</span>
+</footer>
+
+
+<!-- ══════════ SCRIPTS ══════════ -->
+<script>
+/* ════════ STATE ════════ */
+var currentStep = 1;
+var formData    = {};
+
+/* ════════ SET MIN DATE ════════ */
+(function(){
+  var d = new Date(); d.setDate(d.getDate() + 3);
+  document.getElementById('f-date').min = d.toISOString().split('T')[0];
+  document.getElementById('f-date').value = d.toISOString().split('T')[0];
+})();
+
+/* ════════ MODE RADIO ════════ */
+document.querySelectorAll('.mode-opt').forEach(function(opt){
+  opt.addEventListener('click', function(){
+    document.querySelectorAll('.mode-opt').forEach(function(o){ o.classList.remove('chosen'); });
+    opt.classList.add('chosen');
+    opt.querySelector('input').checked = true;
+  });
+});
+
+/* ════════ ROLE ICONS MAP ════════ */
+var roleIcons = {
+  'Web Development'  : '💻',
+  'UI/UX Design'     : '🎨',
+  'Digital Marketing': '📣',
+  'Graphic Design'   : '🖼️'
+};
+
+/* ════════ SELECT ROLE FROM CARD ════════ */
+function selectRole(card){
+  document.querySelectorAll('.role-card').forEach(function(c){ c.classList.remove('selected'); });
+  card.classList.add('selected');
+  var role = card.dataset.role;
+  document.getElementById('f-role').value = role;
+  updatePill(role);
+}
+
+function onRoleSelect(role){
+  updatePill(role);
+  document.querySelectorAll('.role-card').forEach(function(c){ c.classList.remove('selected'); });
+  if(role){
+    document.querySelectorAll('.role-card').forEach(function(c){
+      if(c.dataset.role === role) c.classList.add('selected');
+    });
+  }
+}
+
+function updatePill(role){
+  document.getElementById('pillName').textContent = role || '—';
+  document.getElementById('pillIco').textContent  = roleIcons[role] || '🎓';
+}
+
+function selectAndBook(role, icon){
+  document.getElementById('f-role').value = role;
+  updatePill(role);
+  document.querySelectorAll('.role-card').forEach(function(c){ c.classList.remove('selected'); });
+  document.querySelectorAll('.role-card').forEach(function(c){
+    if(c.dataset.role === role) c.classList.add('selected');
+  });
+  document.getElementById('book').scrollIntoView({ behavior:'smooth' });
+}
+
+function scrollToRole(id){
+  document.getElementById('roles').scrollIntoView({ behavior:'smooth' });
+}
+
+/* ════════ STEP NAV ════════ */
+function goStep(n){
+  document.getElementById('sp'+currentStep).classList.remove('active');
+  currentStep = n;
+  document.getElementById('sp'+currentStep).classList.add('active');
+  updateStepUI();
+  document.getElementById('book').scrollIntoView({ behavior:'smooth' });
+}
+
+function updateStepUI(){
+  for(var i=1;i<=4;i++){
+    var sc = document.getElementById('sc'+i);
+    var sl = document.getElementById('sl'+i);
+    if(!sc) continue;
+    sc.classList.remove('active','done');
+    sl.classList.remove('active');
+    if(i < currentStep){ sc.classList.add('done'); sc.textContent=''; }
+    else if(i === currentStep){ sc.classList.add('active'); sc.textContent=i; sl.classList.add('active'); }
+    else{ sc.textContent=i; }
+  }
+  for(var j=1;j<=3;j++){
+    var ln = document.getElementById('line'+j);
+    if(ln) ln.classList.toggle('done', currentStep > j);
+  }
+}
+
+function nextStep(from){
+  if(from===1){
+    var role = document.getElementById('f-role').value;
+    var date = document.getElementById('f-date').value;
+    if(!role){ showErr('err1','⚠ Please select an internship role.'); document.getElementById('f-role').classList.add('err'); return; }
+    if(!date){ showErr('err1','⚠ Please choose a preferred start date.'); return; }
+    hideErr('err1'); document.getElementById('f-role').classList.remove('err');
+    var mode = document.querySelector('input[name="mode"]:checked').value;
+    formData.role = role; formData.date = date; formData.mode = mode;
+    updatePill(role);
+    goStep(2);
+  } else if(from===2){
+    var fn = document.getElementById('f-fname').value.trim();
+    var ln = document.getElementById('f-lname').value.trim();
+    var em = document.getElementById('f-email').value.trim();
+    var ph = document.getElementById('f-phone').value.trim();
+    var col= document.getElementById('f-college').value.trim();
+    var yr = document.getElementById('f-year').value;
+    if(!fn||!ln){ showErr('err2','⚠ Please enter your full name.'); return; }
+    if(!em||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ showErr('err2','⚠ Please enter a valid email address.'); return; }
+    if(!ph){ showErr('err2','⚠ Please enter your phone number.'); return; }
+    if(!col){ showErr('err2','⚠ Please enter your college/institution.'); return; }
+    if(!yr){ showErr('err2','⚠ Please select your current year.'); return; }
+    hideErr('err2');
+    formData.fname=fn; formData.lname=ln; formData.email=em;
+    formData.phone=ph; formData.college=col; formData.year=yr;
+    formData.linkedin = document.getElementById('f-linkedin').value.trim();
+    formData.why      = document.getElementById('f-why').value.trim();
+    buildReview();
+    goStep(3);
+  } else if(from===3){
+    if(!document.getElementById('f-terms').checked){
+      showErr('err3','⚠ Please accept the Terms & Conditions to proceed.');
+      return;
+    }
+    hideErr('err3');
+    // Populate payment review summary
+    var rows = [
+      ['Role',       formData.role],
+      ['Start Date', formData.date],
+      ['Name',       formData.fname + ' ' + formData.lname],
+      ['Email',      formData.email],
+      ['Phone',      formData.phone],
+    ];
+    document.getElementById('payReviewBox').innerHTML =
+      rows.map(function(r){
+        return '<div class="confirm-row"><span class="lbl">'+r[0]+'</span><span class="val">'+r[1]+'</span></div>';
+      }).join('');
+    // Save to Firebase
+    if(window._saveInternshipBooking){
+      window._saveInternshipBooking(formData).then(function(id){
+        if(id) formData.firestoreId = id;
+      });
+    }
+    goStep(4);
+  }
+}
+
+function buildReview(){
+  var rows = [
+    ['Role',       formData.role],
+    ['Mode',       formData.mode],
+    ['Start Date', formData.date],
+    ['Name',       formData.fname + ' ' + formData.lname],
+    ['Email',      formData.email],
+    ['Phone',      formData.phone],
+    ['College',    formData.college],
+    ['Year',       formData.year],
+  ];
+  var html = rows.map(function(r){
+    return '<div class="confirm-row"><span class="lbl">'+r[0]+'</span><span class="val">'+r[1]+'</span></div>';
+  }).join('');
+  document.getElementById('reviewBox').innerHTML = html;
+}
+
+/* ════════ RESET FORM ════════ */
+function resetForm(){
+  document.getElementById('formCard').style.display = 'block';
+  document.getElementById('successScreen').classList.remove('show');
+  document.getElementById('stepsBar').style.display = 'flex';
+  document.querySelectorAll('.role-card').forEach(function(c){ c.classList.remove('selected'); });
+  document.querySelectorAll('.step-panel').forEach(function(p){ p.classList.remove('active'); });
+  ['f-role','f-fname','f-lname','f-email','f-phone','f-college','f-year','f-linkedin','f-why'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('f-terms').checked=false;
+  formData={}; currentStep=1;
+  document.getElementById('sp1').classList.add('active');
+  updateStepUI();
+}
+
+/* ════════ MSG HELPERS ════════ */
+function showErr(id,txt){ var e=document.getElementById(id); e.textContent=txt; e.classList.add('show'); }
+function hideErr(id){ var e=document.getElementById(id); e.textContent=''; e.classList.remove('show'); }
+
+/* ════════ STAT COUNTER ════════ */
+(function(){
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(!entry.isIntersecting) return;
+      var el  = entry.target;
+      var end = parseInt(el.dataset.target);
+      var cur = 0; var step = end/50;
+      var t = setInterval(function(){
+        cur = Math.min(cur+step, end);
+        el.textContent = Math.floor(cur) + (end===100?'%':'');
+        if(cur>=end) clearInterval(t);
+      }, 30);
+      obs.unobserve(el);
+    });
+  }, {threshold:.5});
+  document.querySelectorAll('.stat-n[data-target]').forEach(function(el){ obs.observe(el); });
+})();
+
+/* ════════ NETWORK CANVAS ════════ */
+(function(){
+  var canvas = document.getElementById('net-canvas'),
+      ctx    = canvas.getContext('2d'),
+      W, H, pts,
+      NUM    = 75, DIST = 145,
+      mouse  = {x:-999,y:-999};
+
+  function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; }
+  function init(){
+    pts=[];
+    for(var i=0;i<NUM;i++) pts.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4 });
+  }
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<pts.length;i++){
+      for(var j=i+1;j<pts.length;j++){
+        var dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.hypot(dx,dy);
+        if(d<DIST){
+          ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.strokeStyle='rgba(0,255,255,'+(1-d/DIST)*.25+')'; ctx.lineWidth=.6; ctx.stroke();
+        }
+      }
+      var md=Math.hypot(pts[i].x-mouse.x,pts[i].y-mouse.y);
+      if(md<180){
+        ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(mouse.x,mouse.y);
+        ctx.strokeStyle='rgba(0,255,255,'+(1-md/180)*.5+')'; ctx.lineWidth=.9; ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(pts[i].x,pts[i].y,1.4,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,255,255,0.7)'; ctx.fill();
+      pts[i].x+=pts[i].vx; pts[i].y+=pts[i].vy;
+      if(pts[i].x<0||pts[i].x>W) pts[i].vx*=-1;
+      if(pts[i].y<0||pts[i].y>H) pts[i].vy*=-1;
+    }
+    requestAnimationFrame(frame);
+  }
+  addEventListener('resize',    function(){ resize(); init(); });
+  addEventListener('mousemove', function(e){ mouse.x=e.clientX; mouse.y=e.clientY; });
+  addEventListener('mouseleave',function(){ mouse.x=mouse.y=-999; });
+  resize(); init(); frame();
+})();
+</script>
+
+<!-- ══════════ FIREBASE — Save internship bookings ══════════ -->
+<script type="module">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBtRYi60g2dgPgSU628WBdtyuTk7DliV14",
+    authDomain:        "nn-nexus.firebaseapp.com",
+    projectId:         "nn-nexus",
+    storageBucket:     "nn-nexus.firebasestorage.app",
+    messagingSenderId: "582662770842",
+    appId:             "1:582662770842:web:6803b8988d502185904f23"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  /* Expose save function to global scope */
+  window._saveInternshipBooking = async function(data) {
+    try {
+      const docRef = await addDoc(collection(db, 'internships'), {
+        name:        data.fname + ' ' + data.lname,
+        email:       data.email,
+        mobile:      data.phone,
+        college:     data.college,
+        year:        data.year,
+        role:        data.role,
+        mode:        data.mode,
+        startDate:   data.date,
+        linkedin:    data.linkedin || '',
+        motivation:  data.why     || '',
+        paymentStatus: 'unpaid',
+        paymentRef:    '',
+        type:          'internship',
+        submittedAt:   serverTimestamp()
+      });
+      return docRef.id;
+    } catch(e) {
+      console.error('Firebase save error:', e);
+      return null;
+    }
+  };
+</script>
+
+</body>
+</html>
